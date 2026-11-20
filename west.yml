@@ -1,0 +1,15 @@
+manifest:
+  remotes:
+    - name: nrfconnect
+      url-base: https://github.com/nrfconnect
+
+  projects:
+    # Edge AI Add-on; its own manifest pulls nRF Connect SDK v3.4.1 and Zephyr.
+    - name: edge-ai
+      repo-path: sdk-edge-ai
+      remote: nrfconnect
+      revision: v3.0.0
+      import: true
+
+  self:
+    path: axon-npu-demo

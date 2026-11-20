@@ -1,0 +1,8 @@
+build/
+model/*.tflite
+model/*.npy
+model/outputs/
+model/intermediate/
+model/logs/
+.DS_Store
+.vscode/

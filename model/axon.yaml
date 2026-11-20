@@ -1,0 +1,11 @@
+mlperf_kws:
+  model_name: mlperf_kws
+  tflite_model: kws_ref_model.tflite
+  classification_labels: ["down", "go", "left", "no", "off", "on", "right", "stop", "up", "yes", "silence", "unknown"]
+  # test_data gives the inputs of the test vectors header. The compiler also wants one label
+  # per input, used for its accuracy report only.
+  test_data: x_test.npy
+  test_labels: y_test.npy
+  test_labels_format: just_labels
+  test_vectors: all
+  header_file_test_vector_cnt: 3
