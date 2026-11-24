@@ -19,7 +19,9 @@ Measured on one dev kit with one PPK2. See [Limitations](#limitations) for what 
 ## Results
 
 Measured on one nRF54LM20 DK with one PPK2, in Ampere meter mode at the kit's current-measurement
-header, at 100,000 samples per second. Each capture starts from a power cycle.
+header, at 100,000 samples per second. The kit's supply voltage is set to 3.3 V in the
+[Board Configurator](https://docs.nordicsemi.com/bundle/nrf-connect-board-configurator/page/index.html)
+app, and the captures are given `--vdd 3.3`. Each capture starts from a power cycle.
 
 | Model | Backend | Time | Mean current | Charge, median | Charge, mean ± sd | Regions |
 |---|---|---:|---:|---:|---:|---:|
@@ -86,8 +88,6 @@ ppk2-lib 0.1.0, from macOS 26.5.
   and -128 with Axon. Agreement on real data was not checked.
 - This compares two ways to deploy a model on this chip. It does not measure the NPU alone:
   TFLM is an interpreter, and code written for the CPU by hand could be faster.
-- `--vdd 3.3` was given to the captures. In Ampere meter mode it feeds the PPK2's calibration.
-  The supply voltage of the DUT was not measured.
 
 ## Reproduction
 
