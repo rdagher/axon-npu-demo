@@ -75,7 +75,7 @@ captures themselves, 47 to 105 MB each, are not in the repository.
 Tested with nRF Connect SDK v3.4.1, add-on v3.0.0, TFLM at `fcc760a`, zephyr-ppk2 at `a5fbce7` and
 ppk2-lib 0.1.0, from macOS 26.5.
 
-- One dev kit, one PPK2, one capture per configuration: 12 s for Axon, 25 s for TFLM.
+- Measured on one dev kit with one PPK2, in one capture per configuration: 12 s for Axon, 25 s for TFLM.
 - The inputs are three random vectors per model, from
   [`model/make_test_data.py`](../model/make_test_data.py). No dataset is involved, so nothing
   here is about accuracy.
@@ -88,9 +88,6 @@ ppk2-lib 0.1.0, from macOS 26.5.
   TFLM is an interpreter, and code written for the CPU by hand could be faster.
 - `--vdd 3.3` was given to the captures. In Ampere meter mode it feeds the PPK2's calibration.
   The supply voltage of the DUT was not measured.
-- A capture taken in the same session as the flash reads high: after a flash the chip stays in
-  debug mode until it is power-cycled. The median charge was then 3 to 8 % above the figures
-  given here, and the idle current 36 to 39 µA.
 
 ## Reproduction
 
@@ -111,6 +108,9 @@ Wire the bench as follows. See zephyr-ppk2's
 
 With the PPK2 in the supply path, the debug port answers only while the PPK2 passes power.
 `west ppk2 run` and `west ppk2 power on --hold` do that.
+
+Capture from a power cycle, never in the session of the flash. After a flash the chip stays in debug
+mode and reads high: the idle current is then 36 to 39 µA, where it is 1.4 to 1.5 µA here.
 
 To build, measure and draw, run:
 
