@@ -68,6 +68,17 @@ The first line prints once at start-up: press RESET on the DK to see it. The fir
 
 The classes match the sample log in the add-on's `tests/axon/inference/README.rst`. `MISMATCH` replaces `bit exact` when the output differs from the expected vector.
 
+## Default model
+
+`tinyml_kws` is two headers of the add-on, written by the Axon compiler:
+
+| File | Content |
+|---|---|
+| [`nrf_axon_model_tinyml_kws_.h`](https://github.com/nrfconnect/sdk-edge-ai/blob/v3.0.0/tests/axon/compiled_models/nrf_axon_model_tinyml_kws_.h) | The compiled model: an NPU command stream of 3,613 words, 22,064 B of weights and biases, and a descriptor with the shapes, the quantisation and the 12 labels |
+| [`nrf_axon_model_tinyml_kws_test_vectors_.h`](https://github.com/nrfconnect/sdk-edge-ai/blob/v3.0.0/tests/axon/compiled_models/nrf_axon_model_tinyml_kws_test_vectors_.h) | Three test vectors: for each, an input of 490 B (49 x 10 `int8`) and the expected output of 48 B (12 `int32`) |
+
+Both stay in flash. The model also needs 13,548 B of RAM, the interlayer buffer. See [Models](docs/models.md) for the other three models and the symbols of the header.
+
 ## Bench
 
 [`bench/`](bench/README.md) is a second app. It measures the four MLPerf Tiny models with a [Power Profiler Kit II](https://www.nordicsemi.com/Products/Development-hardware/Power-Profiler-Kit-2) (PPK2), [zephyr-ppk2](https://github.com/rdagher/zephyr-ppk2) and [ppk2-lib](https://github.com/rdagher/ppk2-lib), on the NPU and on the CPU with TensorFlow Lite Micro (TFLM):
