@@ -1,4 +1,5 @@
 build/
+build-*/
 model/*.tflite
 model/*.npy
 model/outputs/

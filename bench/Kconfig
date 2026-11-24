@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: Apache-2.0
+
+config BENCH_TFLM
+	bool "Run the model on the CPU with TensorFlow Lite Micro instead of the Axon NPU"
+
+config BENCH_TFLM_ARENA_SIZE
+	int "TFLM tensor arena, bytes"
+	default 131072
+
+config BENCH_GAP_MS
+	int "Sleep between two inferences, ms"
+	default 50
+
+source "Kconfig.zephyr"

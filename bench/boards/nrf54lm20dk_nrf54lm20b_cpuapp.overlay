@@ -1,0 +1,8 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+
+/* P1.12 is free on the DK: high for the duration of one inference. */
+/ {
+	zephyr,user {
+		trace-gpios = <&gpio1 12 GPIO_ACTIVE_HIGH>;
+	};
+};

@@ -39,6 +39,13 @@ build model="tinyml_kws" headers="":
     {{tc}} west build -p -b {{board}} '{{root}}/app' --build-dir '{{root}}/build' -- -DAXON_MODEL={{model}} \
         {{ if headers == "" { "" } else { "-DAXON_MODEL_DIR='" + absolute_path(headers) + "'" } }}
 
+# Measurement firmware: backend is axon or tflm; add `verify` to keep the UART and print results
+bench backend="axon" mode="quiet" model="mlperf_kws" headers="model/outputs" tflite="model/kws_ref_model.tflite":
+    {{tc}} west build -p -b {{board}} '{{root}}/bench' --build-dir '{{root}}/build' -- -DAXON_MODEL={{model}} \
+        -DAXON_MODEL_DIR='{{absolute_path(headers)}}' -DTFLITE='{{absolute_path(tflite)}}' \
+        -DEXTRA_CONF_FILE='{{backend}}.conf{{ if mode == "quiet" { ";quiet.conf" } else { "" } }}' \
+        {{ if backend == "axon" { "-DEXTRA_DTC_OVERLAY_FILE=axon.overlay" } else { "" } }}
+
 # Serial number of the kit to use: DK_SERIAL, or the only J-Link kit attached
 _kit:
     #!/usr/bin/env bash
@@ -55,7 +62,7 @@ flash:
     #!/usr/bin/env bash
     set -euo pipefail
     kit=$({{just_executable()}} _kit)
-    nrfutil device program --serial-number "$kit" --firmware '{{root}}/build/app/zephyr/zephyr.hex'
+    nrfutil device program --serial-number "$kit" --firmware "$(ls '{{root}}'/build/*/zephyr/zephyr.hex)"
     nrfutil device reset --serial-number "$kit"
 
 # App UART is the DK's VCOM1: port from nrfutil, terminal from the toolchain. Ctrl-] quits.
