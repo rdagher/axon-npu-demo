@@ -20,7 +20,7 @@ On the NPU an inference takes 5.7 to 16.1 times less time and 4.1 to 14.2 times 
 ```mermaid
 flowchart LR
     addon[add-on: compiled_models/<br/>model + test vectors headers] --> build((just build))
-    tflite[kws_ref_model.tflite<br/>downloaded] -- just compile --> out[model/outputs/<br/>model + test vectors headers]
+    tflite[MLPerf Tiny .tflite<br/>downloaded] -- just compile --> out[model/outputs/<br/>model + test vectors headers]
     out -.-> build
     app[main.c] --> build
     sdk[nRF Connect SDK, Zephyr<br/>add-on driver + platform] --> build
@@ -202,4 +202,4 @@ References:
 |---|---|
 | Everything in this repository | [Apache-2.0](LICENSE) |
 | nRF Connect SDK, Edge AI Add-on | Not in this repository. `west` fetches them under their own licences: Nordic's 5-Clause licence, which restricts use to Nordic devices, for the add-on, sdk-nrf and nrfxlib; Apache-2.0 for Zephyr; others for the remaining modules. The compiled models and test vectors are part of the add-on |
-| MLPerf Tiny `.tflite` models | Not in this repository. `just compile` downloads them from [mlcommons/tiny](https://github.com/mlcommons/tiny), which is Apache-2.0. `benchmark/training/keyword_spotting/README.md` in that repository says the model is trained on Speech Commands v2, a dataset released under CC BY 4.0 according to [its paper](https://arxiv.org/abs/1804.03209) |
+| MLPerf Tiny `.tflite` models | Not in this repository. `just compile` downloads them from [mlcommons/tiny](https://github.com/mlcommons/tiny), which is Apache-2.0. Each was trained on a public dataset named in its folder of that repository (Speech Commands v2 for keyword spotting, released under CC BY 4.0 according to [its paper](https://arxiv.org/abs/1804.03209)); the licences of the other three datasets were not checked here |
