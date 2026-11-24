@@ -1,19 +1,20 @@
-# Bench: Axon NPU and TFLM on the CPU
+# Bench of the Axon NPU against TFLM
 
-The time, current and charge of one inference on the nRF54LM20B, for the four
-[MLPerf Tiny](https://github.com/mlcommons/tiny) reference models. Each model is run two ways from
-the same `.tflite`:
+A second app that measures the time, the current and the charge of one inference on the
+nRF54LM20B. It runs the four [MLPerf Tiny](https://github.com/mlcommons/tiny) reference models two
+ways, from the same `.tflite`:
 
-- **Axon**: compiled by Nordic's
-  [Axon compiler](https://github.com/nrfconnect/sdk-edge-ai/blob/v3.0.0/doc/axon_compiler/Axon_npu_tflite_compiler.rst),
-  run on the NPU;
-- **TFLM**: [TensorFlow Lite Micro](https://github.com/tensorflow/tflite-micro) with
-  [CMSIS-NN](https://github.com/ARM-software/CMSIS-NN) kernels, run on the Cortex-M33 at 128 MHz.
+| Backend | How the model runs |
+|---|---|
+| Axon | Compiled by Nordic's [Axon compiler](https://github.com/nrfconnect/sdk-edge-ai/blob/v3.0.0/doc/axon_compiler/Axon_npu_tflite_compiler.rst), run on the NPU |
+| TFLM | [TensorFlow Lite Micro](https://github.com/tensorflow/tflite-micro) with [CMSIS-NN](https://github.com/ARM-software/CMSIS-NN) kernels, run on the Cortex-M33 at 128 MHz |
 
-The current is captured with a
-[Power Profiler Kit II](https://www.nordicsemi.com/Products/Development-hardware/Power-Profiler-Kit-2)
-(PPK2). [zephyr-ppk2](https://github.com/rdagher/zephyr-ppk2) marks the inference in the firmware
-and reports it; [ppk2-lib](https://github.com/rdagher/ppk2-lib) drives the PPK2.
+A [Power Profiler Kit II](https://www.nordicsemi.com/Products/Development-hardware/Power-Profiler-Kit-2)
+(PPK2) captures the current. [zephyr-ppk2](https://github.com/rdagher/zephyr-ppk2) marks the
+inference in the firmware and reports it. [ppk2-lib](https://github.com/rdagher/ppk2-lib) drives
+the PPK2.
+
+Measured on one dev kit with one PPK2. See [Limitations](#limitations) for what was not checked.
 
 ## Results
 
@@ -71,6 +72,9 @@ captures themselves, 47 to 105 MB each, are not in the repository.
 
 ## Limitations
 
+Tested with nRF Connect SDK v3.4.1, add-on v3.0.0, TFLM at `fcc760a`, zephyr-ppk2 at `a5fbce7` and
+ppk2-lib 0.1.0, from macOS 26.5.
+
 - One dev kit, one PPK2, one capture per configuration: 12 s for Axon, 25 s for TFLM.
 - The inputs are three random vectors per model, from
   [`model/make_test_data.py`](../model/make_test_data.py). No dataset is involved, so nothing
@@ -90,15 +94,15 @@ captures themselves, 47 to 105 MB each, are not in the repository.
 
 ## Reproduction
 
-The main README's [requirements](../README.md#requirements), Docker and a PPK2 are needed. On the
-host, in the environment `west` runs from:
+Docker and a PPK2 are required, with the [requirements](../README.md#requirements) of the main
+README. On the host, install these in the environment `west` runs from:
 
 ```sh
 pip install west ppk2-lib pyelftools matplotlib
 ```
 
-Wiring, as on zephyr-ppk2's [bench](https://github.com/rdagher/zephyr-ppk2/blob/main/docs/bench.md)
-page:
+Wire the bench as follows. See zephyr-ppk2's
+[bench](https://github.com/rdagher/zephyr-ppk2/blob/main/docs/bench.md) page for the kit's header.
 
 - the PPK2 at the kit's current-measurement header, in Ampere meter mode;
 - `D0` of the logic port to P1.12;
@@ -107,6 +111,8 @@ page:
 
 With the PPK2 in the supply path, the debug port answers only while the PPK2 passes power.
 `west ppk2 run` and `west ppk2 power on --hold` do that.
+
+To build, measure and draw, run:
 
 ```sh
 just compile                  # the four models, into model/outputs/

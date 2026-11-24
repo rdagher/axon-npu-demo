@@ -1,21 +1,16 @@
 # axon-npu-demo
 
-Minimal Axon NPU flow on the nRF54LM20 DK (nRF54LM20B SoC, board target `nrf54lm20dk/nrf54lm20b/cpuapp`):
-- take a model compiled by Nordic's Axon compiler (a C header),
-- link it into a Zephyr app,
-- run inference on the test vectors that come with it,
-- check the output bytes against the expected ones.
+A Zephyr app that runs a neural network on the Axon NPU of the nRF54LM20B and checks the result.
+It links a model compiled by Nordic's Axon compiler (a C header), runs inference on the test
+vectors that come with it, and compares the output bytes with the expected ones.
 
-The default model is `tinyml_kws`, one of the four [MLPerf Tiny](https://github.com/mlcommons/tiny) models that the Edge AI Add-on ships already compiled, with three test vectors each. The app includes those headers from the add-on in the west workspace; this repository contains no add-on file.
+The default model is `tinyml_kws`, one of the four [MLPerf Tiny](https://github.com/mlcommons/tiny)
+models that the [Edge AI Add-on](https://github.com/nrfconnect/sdk-edge-ai) ships already compiled,
+with three test vectors each. The app includes those headers from the add-on in the west
+workspace. This repository contains no add-on file.
 
-`just compile` is optional: it downloads the four MLPerf Tiny `.tflite` files and runs the Axon compiler on them, to show how such headers are produced.
-
-[`bench/`](bench/README.md) is a second app. It measures those four models with a [Power Profiler Kit II](https://www.nordicsemi.com/Products/Development-hardware/Power-Profiler-Kit-2) (PPK2), [zephyr-ppk2](https://github.com/rdagher/zephyr-ppk2) and [ppk2-lib](https://github.com/rdagher/ppk2-lib), on the NPU and on the CPU with TensorFlow Lite Micro (TFLM):
-
-![Time per inference](bench/results/latency.png)
-![Charge per inference](bench/results/charge.png)
-
-On the NPU an inference takes 5.6 to 16.1 times less time and 3.9 to 13.8 times less charge than with TFLM on the same chip. See [bench/README.md](bench/README.md) for the figures, what they include and their limits.
+Tested on one nRF54LM20 DK, from macOS 26.5, with nRF Connect SDK v3.4.1 and add-on v3.0.0. Linux
+is untested. Windows is not supported.
 
 ```mermaid
 flowchart LR
@@ -31,7 +26,7 @@ flowchart LR
 
 ## Requirements
 
-- nRF54LM20 DK (PCA10184) with the nRF54LM20B; the nRF54LM20A has no NPU
+- nRF54LM20 DK (PCA10184) with the nRF54LM20B, board target `nrf54lm20dk/nrf54lm20b/cpuapp`. The nRF54LM20A has no NPU
 - [`nrfutil`](https://docs.nordicsemi.com/bundle/nrfutil/page/guides/installing.html)
   with `nrfutil install sdk-manager device`
 - [SEGGER J-Link](https://www.segger.com/downloads/jlink/) software, which `nrfutil device` needs
@@ -41,7 +36,7 @@ flowchart LR
   the debug probe, and membership of the `dialout` and `docker` groups
 
 `west.yml` pins the [Edge AI Add-on](https://github.com/nrfconnect/sdk-edge-ai)
-at **v3.0.0**, which pulls nRF Connect SDK **v3.4.1**.
+at v3.0.0, which pulls nRF Connect SDK v3.4.1.
 
 ## Quick start
 
@@ -101,7 +96,18 @@ Build sizes on add-on v3.0.0. RAM includes the 52,224 B interlayer buffer, flash
 | `tinyml_ic` | 3,072 B | 40 B | 52,224 B | 172,320 B | 60,016 B |
 | `tinyml_vww` | 27,648 B | 8 B | 46,080 B | 389,256 B | 59,952 B |
 
+## Bench
+
+[`bench/`](bench/README.md) is a second app. It measures the four MLPerf Tiny models with a [Power Profiler Kit II](https://www.nordicsemi.com/Products/Development-hardware/Power-Profiler-Kit-2) (PPK2), [zephyr-ppk2](https://github.com/rdagher/zephyr-ppk2) and [ppk2-lib](https://github.com/rdagher/ppk2-lib), on the NPU and on the CPU with TensorFlow Lite Micro (TFLM):
+
+![Time per inference](bench/results/latency.png)
+![Charge per inference](bench/results/charge.png)
+
+On the NPU an inference takes 5.6 to 16.1 times less time and 3.9 to 13.8 times less charge than with TFLM on the same chip. See [bench/README.md](bench/README.md) for the figures, what they include and their limits.
+
 ## Compiling a model (optional)
+
+`just compile` downloads the four MLPerf Tiny `.tflite` files and runs the Axon compiler on them. It shows how the headers used above are produced.
 
 ```sh
 just compile                          # needs Docker
@@ -154,12 +160,9 @@ See `app/src/main.c`:
 2. `nrf_axon_nn_model_init_vars()` resets the model's persistent variables (these models have none).
    `nrf_axon_nn_model_validate()` checks that the interlayer buffer is large enough and the driver recent enough.
    The app also refuses a model with several inputs or outputs.
-3. `nrf_axon_nn_model_infer_sync(&model, in, out)`:
-    - powers the NPU on and takes its lock,
-    - copies `in` into the interlayer buffer,
-    - hands the command stream to the NPU,
-    - sleeps until the completion interrupt,
-    - copies the result to `out` and powers the NPU off.
+3. `nrf_axon_nn_model_infer_sync(&model, in, out)` powers the NPU on, takes its lock and copies `in` into the interlayer buffer.
+   It hands the command stream to the NPU and sleeps until the completion interrupt.
+   Then it copies the result to `out` and powers the NPU off.
 4. `nrf_axon_nn_get_classification()`: index and label of the highest output.
 
 Not every layer runs on the NPU: the command streams of the three classifiers end with a softmax computed on the CPU, in `drivers/axon/nrf_axon_nn_op_extensions.c`.
@@ -191,7 +194,7 @@ References:
 - The compiler in add-on v3.0.0 (Axon compiler v2.0.1) fails without the `classification_labels` key in `model/axon.yaml`. A model without classes, like anomaly detection, takes the key empty and no `test_labels`.
 - The compiler writes the test vectors header only with `test_data` and `header_file_test_vector_cnt` above 0; the default is 0.
 - The `us` column is the time of one `nrf_axon_nn_model_infer_sync()` call, measured with `k_cycle_get_32()` (1 µs resolution). It includes NPU power-up and locking, the input copy, the NPU run, any CPU layer, the output copy and power-down.
-- Tested on macOS. Linux is untested; Windows is not supported (`flash` and `monitor` need `bash`).
+- `just flash` and `just monitor` need `bash`.
 - A model header defines its data, so it can be included in one C file only.
 - `just build` passes `-DAXON_MODEL` and `-DAXON_MODEL_DIR` to CMake; `app/CMakeLists.txt` reads them with `zephyr_get()`, since a plain cache variable does not reach the app image under sysbuild.
 - Paths containing spaces are not supported by the SDK's build system.
