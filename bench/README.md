@@ -71,7 +71,7 @@ eight captures.
 - This is a comparison of two ways to deploy a model on this chip. It is not a measurement of the
   NPU alone: TFLM is an interpreter, and a hand-optimised CPU implementation could be faster.
 - One board, one capture per configuration, 12 s (Axon) or 25 s (TFLM).
-- A first set of captures, taken in the same powered session as the flash, read 5 to 8 % higher:
+- A first set of captures, taken in the same powered session as the flash, read 3 to 8 % higher (median charge):
   after flashing, the chip stays in debug mode until it is power-cycled.
 
 ## Reproduce
