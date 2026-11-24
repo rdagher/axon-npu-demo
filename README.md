@@ -10,12 +10,12 @@ The default model is `tinyml_kws`, one of the four [MLPerf Tiny](https://github.
 
 `just compile` is optional: it downloads the four MLPerf Tiny `.tflite` files and runs the Axon compiler on them, to show how such headers are produced.
 
-[`bench/`](bench/README.md) is a second app that measures those four models with a PPK2, on the NPU and on the CPU with TFLM:
+[`bench/`](bench/README.md) is a second app. It measures those four models with a [Power Profiler Kit II](https://www.nordicsemi.com/Products/Development-hardware/Power-Profiler-Kit-2) (PPK2), [zephyr-ppk2](https://github.com/rdagher/zephyr-ppk2) and [ppk2-lib](https://github.com/rdagher/ppk2-lib), on the NPU and on the CPU with TensorFlow Lite Micro (TFLM):
 
 ![Time per inference](bench/results/latency.png)
 ![Charge per inference](bench/results/charge.png)
 
-On the NPU an inference takes 5.6 to 16.1 times less time and 3.9 to 13.8 times less charge, so less energy, than with TFLM on the same chip. See [bench/README.md](bench/README.md) for the figures, what they include and how to reproduce them.
+On the NPU an inference takes 5.6 to 16.1 times less time and 3.9 to 13.8 times less charge than with TFLM on the same chip. See [bench/README.md](bench/README.md) for the figures, what they include and their limits.
 
 ```mermaid
 flowchart LR
@@ -43,7 +43,7 @@ flowchart LR
 `west.yml` pins the [Edge AI Add-on](https://github.com/nrfconnect/sdk-edge-ai)
 at **v3.0.0**, which pulls nRF Connect SDK **v3.4.1**.
 
-## Run
+## Quick start
 
 This repo is a west manifest: clone it into an empty directory and the SDK is checked out next to it.
 
@@ -72,7 +72,7 @@ To reuse an existing add-on v3.0.0 workspace instead, skip `just setup`, install
 
 Expected output, after the boot banner (the vector lines and the summary repeat every 2 s):
 
-```
+```text
 model tinyml_kws ready: 48 bytes out, 13548 bytes of workspace
 vector 0: bit exact  5259 us  class 7 (STOP)
 vector 1: bit exact  5259 us  class 2 (LEFT)
@@ -92,14 +92,14 @@ just build tinyml_ic     # image classification
 just build tinyml_vww    # visual wake words
 ```
 
-Build sizes on add-on v3.0.0. RAM includes the 52 224 B interlayer buffer, flash the three test vectors:
+Build sizes on add-on v3.0.0. RAM includes the 52,224 B interlayer buffer, flash the three test vectors:
 
 | Model | Input | Output | Interlayer buffer needed | Flash | RAM |
 |---|---:|---:|---:|---:|---:|
-| `tinyml_kws` | 490 B | 48 B | 13 548 B | 85 028 B | 60 032 B |
-| `tinyml_ad` | 640 B | 2 560 B | 2 688 B | 323 396 B | 62 376 B |
-| `tinyml_ic` | 3 072 B | 40 B | 52 224 B | 172 320 B | 60 016 B |
-| `tinyml_vww` | 27 648 B | 8 B | 46 080 B | 389 256 B | 59 952 B |
+| `tinyml_kws` | 490 B | 48 B | 13,548 B | 85,028 B | 60,032 B |
+| `tinyml_ad` | 640 B | 2,560 B | 2,688 B | 323,396 B | 62,376 B |
+| `tinyml_ic` | 3,072 B | 40 B | 52,224 B | 172,320 B | 60,016 B |
+| `tinyml_vww` | 27,648 B | 8 B | 46,080 B | 389,256 B | 59,952 B |
 
 ## Compiling a model (optional)
 
@@ -140,8 +140,8 @@ For `tinyml_kws`:
 
 | Symbol | Where | What |
 |---|---|---|
-| `cmd_buffer_tinyml_kws[]` | flash | NPU command stream, 3 613 words |
-| `axon_model_const_tinyml_kws` | flash | weights and biases, 22 064 B |
+| `cmd_buffer_tinyml_kws[]` | flash | NPU command stream, 3,613 words |
+| `axon_model_const_tinyml_kws` | flash | weights and biases, 22,064 B |
 | `model_tinyml_kws` | flash | descriptor: buffer pointers, I/O shapes, quantisation, labels |
 
 The header also states the RAM the model needs for its activations, the interlayer buffer (`NRF_AXON_MODEL_TINYML_KWS_MAX_IL_BUFFER_USED`; the app prints it as "workspace"). That RAM is not inside the NPU: it is the global array `nrf_axon_interlayer_buffer`, defined in the add-on's Zephyr platform file and sized by `CONFIG_NRF_AXON_INTERLAYER_BUFFER_SIZE` in `app/prj.conf`. The same buffer holds the model's input and output. The header fails to compile if the buffer is too small.
@@ -166,7 +166,7 @@ Not every layer runs on the NPU: the command streams of the three classifiers en
 
 An application needs three things to use the NPU: `CONFIG_NRF_AXON=y` and `CONFIG_NRF_AXON_INTERLAYER_BUFFER_SIZE` in `prj.conf`, and the `axon` node enabled in a devicetree overlay (`app/boards/`), since it is disabled by default.
 
-## Important add-on files
+## Add-on files
 
 | Path under `edge-ai/` | Content |
 |---|---|
@@ -185,7 +185,7 @@ References:
 - [MLPerf Tiny models on Axon](https://github.com/nrfconnect/sdk-edge-ai/blob/v3.0.0/doc/axon_compiler/mlperf_tiny_models.rst),
 - [supported operators](https://github.com/nrfconnect/sdk-edge-ai/blob/v3.0.0/doc/axon_compiler/supported_operators.rst).
 
-## Notes
+## Limitations and notes
 
 - `just flash` and `just monitor` use the only J-Link kit attached. With several, they stop and ask for `DK_SERIAL=<serial number>`, as listed by `nrfutil device list`.
 - The compiler in add-on v3.0.0 (Axon compiler v2.0.1) fails without the `classification_labels` key in `model/axon.yaml`. A model without classes, like anomaly detection, takes the key empty and no `test_labels`.

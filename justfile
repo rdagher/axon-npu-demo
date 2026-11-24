@@ -69,7 +69,7 @@ measure name seconds="12":
         --firmware '{{root}}/build/bench/zephyr/zephyr.hex'
     # A separate capture: after a flash the chip stays in debug mode until it is power-cycled.
     west ppk2 capture --vdd 3.3 --out "$out.csv" --seconds {{seconds}}
-    west ppk2 --build-dir '{{root}}/build' attribute "$out.csv" --vdd 3.3 | tee "$out.txt"
+    west ppk2 --build-dir '{{root}}/build' attribute "$out.csv" | tee "$out.txt"
 
 # Serial number of the kit to use: DK_SERIAL, or the only J-Link kit attached
 _kit:
