@@ -13,9 +13,9 @@ The default model is `tinyml_kws`, one of the four [MLPerf Tiny](https://github.
 [`bench/`](bench/README.md) is a second app that measures those four models with a PPK2, on the NPU and on the CPU with TFLM:
 
 ![Time per inference](bench/results/latency.png)
-![Energy per inference](bench/results/energy.png)
+![Charge per inference](bench/results/charge.png)
 
-On the NPU an inference takes 5.7 to 16.1 times less time and 4.1 to 14.2 times less energy than with TFLM on the same chip. See [bench/README.md](bench/README.md) for the figures, what they include and how to reproduce them.
+On the NPU an inference takes 5.6 to 16.1 times less time and 3.9 to 13.8 times less charge, so less energy, than with TFLM on the same chip. See [bench/README.md](bench/README.md) for the figures, what they include and how to reproduce them.
 
 ```mermaid
 flowchart LR

@@ -13,34 +13,41 @@ reports it; [ppk2-lib](https://github.com/rdagher/ppk2-lib) drives the PPK2.
 
 ## Results
 
-nRF54LM20 DK, PPK2 in Ampere meter mode across the kit's current-measurement header, 3.3 V,
-100 000 samples per second. Mean over n inferences; charge as mean ± standard deviation.
+nRF54LM20 DK, PPK2 in Ampere meter mode across the kit's current-measurement header, supply
+voltage given as 3.3 V, 100 000 samples per second. Each capture starts from a power cycle, after
+the flash, so the chip is not in debug mode.
 
-| Model | Backend | Time | Mean current | Charge | Energy | n |
-|---|---|---:|---:|---:|---:|---:|
-| Keyword spotting | Axon | 5.269 ms | 3.21 mA | 16.939 ± 0.231 µC | 55.9 µJ | 219 |
-| | TFLM | 68.804 ms | 2.49 mA | 171.587 ± 0.302 µC | 566.2 µJ | 211 |
-| Anomaly detection | Axon | 1.360 ms | 3.51 mA | 4.774 ± 0.178 µC | 15.8 µJ | 236 |
-| | TFLM | 7.685 ms | 2.55 mA | 19.576 ± 0.169 µC | 64.6 µJ | 434 |
-| Image classification | Axon | 18.857 ms | 2.89 mA | 54.539 ± 0.742 µC | 180.0 µJ | 176 |
-| | TFLM | 302.975 ms | 2.55 mA | 772.986 ± 1.145 µC | 2 550.9 µJ | 71 |
-| Visual wake words | Axon | 16.436 ms | 2.95 mA | 48.559 ± 0.356 µC | 160.2 µJ | 182 |
-| | TFLM | 219.895 ms | 2.50 mA | 549.264 ± 0.654 µC | 1 812.6 µJ | 92 |
+| Model | Backend | Time | Mean current | Charge, median | Charge, mean ± sd | Energy | n |
+|---|---|---:|---:|---:|---:|---:|---:|
+| Keyword spotting | Axon | 5.270 ms | 3.23 mA | 16.303 µC | 17.013 ± 1.778 µC | 53.8 µJ | 207 |
+|  | TFLM | 68.854 ms | 2.31 mA | 158.974 µC | 158.979 ± 0.104 µC | 524.6 µJ | 205 |
+| Anomaly detection | Axon | 1.362 ms | 3.38 mA | 4.568 µC | 4.607 ± 0.273 µC | 15.1 µJ | 222 |
+|  | TFLM | 7.686 ms | 2.35 mA | 18.014 µC | 18.049 ± 0.096 µC | 59.4 µJ | 423 |
+| Image classification | Axon | 18.868 ms | 2.76 mA | 51.934 µC | 52.025 ± 0.977 µC | 171.4 µJ | 166 |
+|  | TFLM | 303.001 ms | 2.37 mA | 719.069 µC | 719.031 ± 0.362 µC | 2 372.9 µJ | 69 |
+| Visual wake words | Axon | 16.451 ms | 2.82 mA | 46.475 µC | 46.433 ± 0.652 µC | 153.4 µJ | 172 |
+|  | TFLM | 219.995 ms | 2.32 mA | 510.311 µC | 510.855 ± 1.049 µC | 1 684.0 µJ | 90 |
 
-| Model | Time, TFLM / Axon | Energy, TFLM / Axon |
+| Model | Time, TFLM / Axon | Charge, TFLM / Axon |
 |---|---:|---:|
-| Keyword spotting | 13.1 | 10.1 |
-| Anomaly detection | 5.7 | 4.1 |
-| Image classification | 16.1 | 14.2 |
-| Visual wake words | 13.4 | 11.3 |
+| Keyword spotting | 13.1 | 9.8 |
+| Anomaly detection | 5.6 | 3.9 |
+| Image classification | 16.1 | 13.8 |
+| Visual wake words | 13.4 | 11.0 |
+
+The PPK2 measures current, so the result is a charge. Energy is the median charge times 3.3 V,
+taken as constant; the energy ratio is the charge ratio. The median is used because a wake-up from
+sleep can read tens of mA too high for 40 µs
+([zephyr-ppk2 limitations](https://github.com/rdagher/zephyr-ppk2/blob/main/docs/limitations.md#wake-up-bursts)),
+which moves the mean of a short region: 17.0 against 16.3 µC for keyword spotting on Axon.
 
 ![Time per inference](results/latency.png)
-![Energy per inference](results/energy.png)
+![Charge per inference](results/charge.png)
 
 The reports these figures come from are in `results/*.txt`, as printed by `west ppk2 attribute`.
 The captures themselves (about 100 MB each) are not committed.
 
-Between inferences the firmware sleeps for 50 ms; the median current there is 36 to 39 µA in all
+Between inferences the firmware sleeps for 50 ms; the median current there is 1.44 to 1.49 µA in the
 eight captures.
 
 ## What is measured
@@ -50,7 +57,6 @@ eight captures.
 - Axon: `nrf_axon_nn_model_infer_sync()`, which includes NPU power-up and locking, the input copy,
   the NPU run, the CPU softmax where the model has one, the output copy and power-down.
 - TFLM: the input copy, `Invoke()` and the output copy.
-- The PPK2 measures current. Energy is the charge times 3.3 V, taken as constant.
 - The measurement firmware has no UART (`quiet.conf`).
 
 ## What is compared, and what is not
@@ -64,7 +70,9 @@ eight captures.
   Agreement on real data was not checked.
 - This is a comparison of two ways to deploy a model on this chip. It is not a measurement of the
   NPU alone: TFLM is an interpreter, and a hand-optimised CPU implementation could be faster.
-- One board, one capture per configuration, 12 to 25 s each.
+- One board, one capture per configuration, 12 s (Axon) or 25 s (TFLM).
+- A first set of captures, taken in the same powered session as the flash, read 5 to 8 % higher:
+  after flashing, the chip stays in debug mode until it is power-cycled.
 
 ## Reproduce
 
@@ -82,7 +90,7 @@ the PPK2 passes power, which `west ppk2 run` and `west ppk2 power on --hold` do.
 ```sh
 just compile                          # the four models, into model/outputs/
 just bench axon mlperf_kws            # or tflm; mlperf_ad, mlperf_ic, mlperf_vww
-just measure axon_kws                 # flash, capture 15 s, report
+just measure axon_kws                 # flash, then capture 12 s from a power cycle, and report
 python3 bench/plot.py                 # the two figures, from bench/results/*.txt
 ```
 

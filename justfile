@@ -58,17 +58,18 @@ bench backend="axon" model="mlperf_kws" mode="quiet":
         -DEXTRA_CONF_FILE='{{backend}}.conf{{ if mode == "quiet" { ";quiet.conf" } else { "" } }}' \
         {{ if backend == "axon" { "-DEXTRA_DTC_OVERLAY_FILE=axon.overlay" } else { "" } }}
 
-# Capture the firmware of `just bench` with the PPK2 and report per inference (see bench/README.md)
-measure name seconds="15":
+# Flash the firmware of `just bench`, then capture it with the PPK2 from a power cycle and report
+measure name seconds="12":
     #!/usr/bin/env bash
     set -euo pipefail
     kit=$({{just_executable()}} _kit)
+    out='{{root}}/bench/results/{{name}}'
     cd '{{ws}}'
-    west ppk2 run --vdd 3.3 --out '{{root}}/bench/results/{{name}}.csv' -- sh -c \
-        "nrfutil device program --serial-number $kit --firmware '{{root}}/build/bench/zephyr/zephyr.hex' \
-         && nrfutil device reset --serial-number $kit && sleep {{seconds}}"
-    west ppk2 --build-dir '{{root}}/build' attribute '{{root}}/bench/results/{{name}}.csv' --vdd 3.3 \
-        | tee '{{root}}/bench/results/{{name}}.txt'
+    west ppk2 run --vdd 3.3 -- nrfutil device program --serial-number "$kit" \
+        --firmware '{{root}}/build/bench/zephyr/zephyr.hex'
+    # A separate capture: after a flash the chip stays in debug mode until it is power-cycled.
+    west ppk2 capture --vdd 3.3 --out "$out.csv" --seconds {{seconds}}
+    west ppk2 --build-dir '{{root}}/build' attribute "$out.csv" --vdd 3.3 | tee "$out.txt"
 
 # Serial number of the kit to use: DK_SERIAL, or the only J-Link kit attached
 _kit:

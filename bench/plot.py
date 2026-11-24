@@ -17,8 +17,8 @@ INK, MUTED, SURFACE = "#0b0b0b", "#52514e", "#fcfcfb"
 def read(backend, model):
     line = next(l for l in (HERE / f"{backend}_{model}.txt").read_text().splitlines() if l.startswith("D0 "))
     width = float(re.search(r"width\s+([\d.]+) ms", line).group(1))
-    energy = float(re.search(r"energy\s+([\d.]+) µJ", line).group(1))
-    return width, energy
+    charge = float(re.search(r"median ([\d.]+)", line).group(1))
+    return width, charge
 
 
 def chart(index, unit, title, out):
@@ -49,4 +49,4 @@ def chart(index, unit, title, out):
 
 
 chart(0, "ms", "Time per inference, nRF54LM20B (each panel has its own scale)", "latency.png")
-chart(1, "µJ", "Energy per inference at 3.3 V, nRF54LM20B (each panel has its own scale)", "energy.png")
+chart(1, "µC", "Charge per inference, median, nRF54LM20B (each panel has its own scale)", "charge.png")
