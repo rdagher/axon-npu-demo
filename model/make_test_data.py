@@ -6,10 +6,15 @@ import sys
 import numpy as np
 import tensorflow as tf
 
+if len(sys.argv) < 3 or len(sys.argv) % 2 == 0:
+    sys.exit("usage: make_test_data.py NAME TFLITE [NAME TFLITE ...]")
+
 rng = np.random.default_rng(0)
 for name, tflite in zip(sys.argv[1::2], sys.argv[2::2]):
     inp = tf.lite.Interpreter(tflite).get_input_details()[0]
     scale, zero_point = inp["quantization"]
+    if inp["dtype"] != np.int8 or scale == 0:
+        sys.exit(f"{tflite}: the input is not int8-quantised")
     # Floats that quantise to values spread over the int8 range.
     q = rng.integers(-127, 127, (3, *inp["shape"][1:]))
     np.save(f"{name}_x.npy", ((q - zero_point) * scale).astype(np.float32))

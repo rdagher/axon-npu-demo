@@ -41,7 +41,16 @@ int backend_infer(const int8_t *in, size_t in_len, int8_t *out)
 	if (input->bytes != in_len) {
 		return -1;
 	}
-	memcpy(input->data.int8, in, in_len);
+	/* The Axon test vectors are channel first; a TFLite image tensor is channel last. */
+	const TfLiteIntArray *d = input->dims;
+	const int channels = d->size == 4 ? d->data[3] : 1;
+	const int pixels = in_len / channels;
+
+	for (int c = 0; c < channels; c++) {
+		for (int i = 0; i < pixels; i++) {
+			input->data.int8[i * channels + c] = in[c * pixels + i];
+		}
+	}
 	if (interpreter->Invoke() != kTfLiteOk) {
 		return -1;
 	}

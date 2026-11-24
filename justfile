@@ -53,17 +53,19 @@ build model="tinyml_kws" headers="":
 
 # Measurement firmware, after `just compile`: backend axon or tflm, model mlperf_{kws,ad,ic,vww}; mode `verify` keeps the UART and prints results
 bench backend="axon" model="mlperf_kws" mode="quiet":
+    {{ if backend =~ '^(axon|tflm)$' { "" } else { error("backend: axon or tflm") } }}
+    {{ if mode =~ '^(quiet|verify)$' { "" } else { error("mode: quiet or verify") } }}
     {{tc}} west build -p -b {{board}} '{{root}}/bench' --build-dir '{{root}}/build' -- -DAXON_MODEL={{model}} \
         -DAXON_MODEL_DIR='{{root}}/model/outputs' -DTFLITE='{{root}}/model/{{model}}.tflite' \
         -DEXTRA_CONF_FILE='{{backend}}.conf{{ if mode == "quiet" { ";quiet.conf" } else { "" } }}' \
         {{ if backend == "axon" { "-DEXTRA_DTC_OVERLAY_FILE=axon.overlay" } else { "" } }}
 
-# Flash the firmware of `just bench`, then capture it with the PPK2 from a power cycle and report
-measure name seconds="12":
+# Build the measurement firmware, flash it, capture it with the PPK2 from a power cycle, and report
+measure backend="axon" model="mlperf_kws" seconds="12": (bench backend model "quiet")
     #!/usr/bin/env bash
     set -euo pipefail
     kit=$({{just_executable()}} _kit)
-    out='{{root}}/bench/results/{{name}}'
+    out='{{root}}/bench/results/{{backend}}_{{trim_start_match(model, "mlperf_")}}'
     cd '{{ws}}'
     west ppk2 run --vdd 3.3 -- nrfutil device program --serial-number "$kit" \
         --firmware '{{root}}/build/bench/zephyr/zephyr.hex'
@@ -87,7 +89,9 @@ flash:
     #!/usr/bin/env bash
     set -euo pipefail
     kit=$({{just_executable()}} _kit)
-    nrfutil device program --serial-number "$kit" --firmware "$(ls '{{root}}'/build/*/zephyr/zephyr.hex)"
+    hex=('{{root}}'/build/*/zephyr/zephyr.hex)
+    [ -f "$hex" ] && [ ${#hex[@]} = 1 ] || { echo "expected one image in build/: run just build or just bench" >&2; exit 1; }
+    nrfutil device program --serial-number "$kit" --firmware "$hex"
     nrfutil device reset --serial-number "$kit"
 
 # App UART is the DK's VCOM1: port from nrfutil, terminal from the toolchain. Ctrl-] quits.

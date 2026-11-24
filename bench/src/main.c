@@ -47,6 +47,9 @@ int main(void)
 			printk("vector %zu: %s  %u us  out[0..3] %d %d %d %d\n", i,
 			       err ? "FAILED" : memcmp(out, EXPECTED[i], OUTPUT_LEN) ? "differs" : "bit exact",
 			       us, out[0], out[1], out[2], out[3]);
+			if (err) {
+				return -1; /* no more markers: a failed inference is not measured */
+			}
 			k_sleep(K_MSEC(CONFIG_BENCH_GAP_MS));
 		}
 	}

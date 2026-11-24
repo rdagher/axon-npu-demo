@@ -61,15 +61,16 @@ def bars(index, unit, what, out):
 
 
 def capture(backend, model):
-    """Current in µA, and the D0 region with the median charge."""
+    """Current in µA, and the D0 region whose charge is the closest to the median."""
     rows = np.loadtxt(HERE / f"{backend}_{model}.csv", delimiter=",", skiprows=1, usecols=(1, 3))
     current, d0 = rows[:, 0], rows[:, 1].astype(np.int8)
+    d0[:np.argmax(current > 200)] = 0  # before power-on the digital inputs float, as the report assumes
     edges = np.flatnonzero(np.diff(d0)) + 1
     rises = [e for e in edges if d0[e] == 1]
     falls = [e for e in edges if d0[e] == 0 and e > rises[0]]
     regions = list(zip(rises, falls))
-    charge = [current[a:b].sum() * DT for a, b in regions]
-    return current, regions[int(np.argsort(charge)[len(charge) // 2])]
+    charge = np.array([current[a:b].sum() * DT for a, b in regions])
+    return current, regions[int(np.argmin(np.abs(charge - np.median(charge))))]
 
 
 def traces(out):
@@ -82,7 +83,8 @@ def traces(out):
         span = max(b - a for _, (a, b) in captures.values()) * DT * 1e3
         for ax, (backend, (name, colour)) in zip(axes, BACKENDS.items()):
             current, (a, b) = captures[backend]
-            lo, hi = a - int(0.06 * span / 1e3 / DT), a + int(1.08 * span / 1e3 / DT)
+            lo = max(a - int(0.06 * span / 1e3 / DT), 0)
+            hi = min(a + int(1.08 * span / 1e3 / DT), len(current))
             t = (np.arange(lo, hi) - a) * DT * 1e3
             y = current[lo:hi] / 1000
             width = (b - a) * DT * 1e3
