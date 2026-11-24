@@ -2,10 +2,11 @@
 
 #include <string.h>
 
-#include <zephyr/drivers/gpio.h>
 #include <zephyr/kernel.h>
 #include <zephyr/sys/printk.h>
 #include <zephyr/sys/util.h>
+
+#include <ppk2_trace.h>
 
 #include "backend.h"
 
@@ -18,7 +19,8 @@
 #define INPUT_LEN  sizeof(CAT(MODEL_NAME, _test_input_vector_0))
 #define OUTPUT_LEN sizeof(CAT(MODEL_NAME, _expected_output_vector_0))
 
-static const struct gpio_dt_spec trace = GPIO_DT_SPEC_GET(DT_PATH(zephyr_user), trace_gpios);
+PPK2_TRACE_CLAIM(0, infer);
+
 /* The Axon driver pads its output to a multiple of 4 bytes. */
 static int8_t out[ROUND_UP(OUTPUT_LEN, 4)] __aligned(4);
 
@@ -26,7 +28,7 @@ int main(void)
 {
 	int out_len = backend_init();
 
-	if (out_len < (int)OUTPUT_LEN || out_len > (int)sizeof(out) || gpio_pin_configure_dt(&trace, GPIO_OUTPUT_INACTIVE) != 0) {
+	if (out_len < (int)OUTPUT_LEN || out_len > (int)sizeof(out)) {
 		printk("init failed: %d bytes out, %u expected\n", out_len, (unsigned int)OUTPUT_LEN);
 		return -1;
 	}
@@ -34,11 +36,13 @@ int main(void)
 
 	while (1) {
 		for (size_t i = 0; i < ARRAY_SIZE(INPUTS); i++) {
-			gpio_pin_set_dt(&trace, 1);
 			uint32_t t0 = k_cycle_get_32();
-			int err = backend_infer((const int8_t *)INPUTS[i], INPUT_LEN, out);
+			int err;
+			{
+				PPK2_TRACE_SCOPE(ppk2_ch_infer);
+				err = backend_infer((const int8_t *)INPUTS[i], INPUT_LEN, out);
+			}
 			uint32_t us = k_cyc_to_us_floor32(k_cycle_get_32() - t0);
-			gpio_pin_set_dt(&trace, 0);
 
 			printk("vector %zu: %s  %u us  out[0..3] %d %d %d %d\n", i,
 			       err ? "FAILED" : memcmp(out, EXPECTED[i], OUTPUT_LEN) ? "differs" : "bit exact",

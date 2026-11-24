@@ -7,3 +7,4 @@ model/intermediate/
 model/logs/
 .DS_Store
 .vscode/
+bench/results/*.csv

@@ -1,0 +1,4 @@
+capture: 1674283 samples, 16.74 s powered
+energy: charge times 3.30 V, taken as constant
+D0 infer               n=182   width    16.436 ms  avg   2954.34 µA  peak    15536 µA  charge    48.559 ± 0.356 µC (median 48.458)  energy   160.244 µJ
+idle (no channel high) median     37.66 µA  mean    344.52 µA

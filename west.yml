@@ -15,6 +15,11 @@ manifest:
       url: https://github.com/zephyrproject-rtos/tflite-micro
       revision: fcc760af130f3a595b5802cdebcc77461e54f382
       path: optional/modules/lib/tflite-micro
+    # For bench/ only: trace markers and the `west ppk2` commands.
+    - name: zephyr-ppk2
+      url: https://github.com/rdagher/zephyr-ppk2
+      revision: a5fbce706cd821d12b84c28dd6840f3cdf92db16
+      west-commands: scripts/west-commands.yml
 
   self:
     path: axon-npu-demo
