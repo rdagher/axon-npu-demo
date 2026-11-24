@@ -46,21 +46,24 @@ standard deviation of the charge over the regions of one capture.
 
 The charge ratio is that of the medians.
 
+![Time per inference of the four models](results/latency.png)
+![Charge per inference of the four models](results/charge.png)
+
+Each panel has its own scale. The charge is the median over the regions.
+
 ![Current of the chip during one inference of each model, on the NPU and on the CPU](results/traces.png)
 
 Each pair of panels shows one inference of a model, on the NPU and on the CPU, on the same scales.
-The shaded area is the charge and the black bar is the marker. The inference drawn is the one
-with the median charge, so its figures are those of the table. The lighter pulses after an Axon
-inference are the next ones.
+The samples are raw, at 100,000 per second. The shaded area is the charge and the black bar is the
+marker. The inference drawn is the one with the median charge, so its figures are those of the
+table. The lighter pulses after an Axon inference are the next ones.
 
-The curves are a moving average over 0.2 ms. The current axis stops at 6 mA: the peaks that
-leave it last a few samples and are the PPK2's wake-up bursts, described under
+The current axis stops at 10 mA. Where samples leave it, the panel gives the peak. Those peaks last
+a few samples at a wake-up and are the PPK2's wake-up bursts, described under
 [Measurement](#measurement).
 
 While it runs, the NPU raises the mean current of the chip by 0.4 to 1.0 mA over the CPU alone.
 The inference is 5.6 to 16.1 times shorter, so the charge is lower.
-
-![Time per inference](results/latency.png)
 
 Between two inferences the firmware sleeps for 50 ms. The median current there is 1.44 to 1.49 µA
 in the eight captures.
