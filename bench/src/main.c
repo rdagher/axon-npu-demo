@@ -19,13 +19,14 @@
 #define OUTPUT_LEN sizeof(CAT(MODEL_NAME, _expected_output_vector_0))
 
 static const struct gpio_dt_spec trace = GPIO_DT_SPEC_GET(DT_PATH(zephyr_user), trace_gpios);
-static int8_t out[OUTPUT_LEN] __aligned(4);
+/* The Axon driver pads its output to a multiple of 4 bytes. */
+static int8_t out[ROUND_UP(OUTPUT_LEN, 4)] __aligned(4);
 
 int main(void)
 {
 	int out_len = backend_init();
 
-	if (out_len != OUTPUT_LEN || gpio_pin_configure_dt(&trace, GPIO_OUTPUT_INACTIVE) != 0) {
+	if (out_len < (int)OUTPUT_LEN || out_len > (int)sizeof(out) || gpio_pin_configure_dt(&trace, GPIO_OUTPUT_INACTIVE) != 0) {
 		printk("init failed: %d bytes out, %u expected\n", out_len, (unsigned int)OUTPUT_LEN);
 		return -1;
 	}

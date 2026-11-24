@@ -1,11 +1,39 @@
+# The four MLPerf Tiny reference models. test_data gives the inputs of the test vectors header.
+# With classification_labels the compiler also wants one label per input, for its accuracy report.
 mlperf_kws:
   model_name: mlperf_kws
-  tflite_model: kws_ref_model.tflite
+  tflite_model: mlperf_kws.tflite
   classification_labels: ["down", "go", "left", "no", "off", "on", "right", "stop", "up", "yes", "silence", "unknown"]
-  # test_data gives the inputs of the test vectors header. The compiler also wants one label
-  # per input, used for its accuracy report only.
-  test_data: x_test.npy
-  test_labels: y_test.npy
+  test_data: mlperf_kws_x.npy
+  test_labels: mlperf_kws_y.npy
+  test_labels_format: just_labels
+  test_vectors: all
+  header_file_test_vector_cnt: 3
+
+mlperf_ad:
+  model_name: mlperf_ad
+  tflite_model: mlperf_ad.tflite
+  classification_labels:
+  test_data: mlperf_ad_x.npy
+  test_vectors: all
+  header_file_test_vector_cnt: 3
+
+mlperf_ic:
+  model_name: mlperf_ic
+  tflite_model: mlperf_ic.tflite
+  classification_labels: ["airplane", "automobile", "bird", "cat", "deer", "dog", "frog", "horse", "ship", "truck"]
+  test_data: mlperf_ic_x.npy
+  test_labels: mlperf_ic_y.npy
+  test_labels_format: just_labels
+  test_vectors: all
+  header_file_test_vector_cnt: 3
+
+mlperf_vww:
+  model_name: mlperf_vww
+  tflite_model: mlperf_vww.tflite
+  classification_labels: ["non_person", "person"]
+  test_data: mlperf_vww_x.npy
+  test_labels: mlperf_vww_y.npy
   test_labels_format: just_labels
   test_vectors: all
   header_file_test_vector_cnt: 3

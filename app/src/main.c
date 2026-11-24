@@ -23,7 +23,8 @@
 #define EXPECTED   CAT(MODEL_NAME, _expected_output_vectors)
 #define OUTPUT_LEN sizeof(CAT(MODEL_NAME, _expected_output_vector_0))
 
-static int8_t out[OUTPUT_LEN] __aligned(4);
+/* The driver pads the output to a multiple of 4 bytes. */
+static int8_t out[ROUND_UP(OUTPUT_LEN, 4)] __aligned(4);
 
 static void run_vectors(void)
 {
@@ -67,10 +68,10 @@ int main(void)
 	}
 	/* out[] holds one output, of the size of the expected vectors. */
 	if (MODEL.input_cnt != 1 || MODEL.output_cnt != 1 ||
-	    MODEL.outputs[0].packed_size != OUTPUT_LEN) {
+	    MODEL.outputs[0].packed_size != sizeof(out)) {
 		printk("unsupported model: %d inputs, %u outputs, %u bytes out, %u expected\n",
 		       MODEL.input_cnt, MODEL.output_cnt,
-		       (unsigned int)MODEL.outputs[0].packed_size, (unsigned int)OUTPUT_LEN);
+		       (unsigned int)MODEL.outputs[0].packed_size, (unsigned int)sizeof(out));
 		return -1;
 	}
 	printk("model %s ready: %u bytes out, %u bytes of workspace\n", MODEL.model_name,
