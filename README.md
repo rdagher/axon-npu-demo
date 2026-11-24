@@ -83,8 +83,9 @@ Both stay in flash. The model also needs 13,548 B of RAM, the interlayer buffer.
 
 [`bench/`](bench/README.md) is a second app. It measures the four MLPerf Tiny models with a [Power Profiler Kit II](https://www.nordicsemi.com/Products/Development-hardware/Power-Profiler-Kit-2) (PPK2), [zephyr-ppk2](https://github.com/rdagher/zephyr-ppk2) and [ppk2-lib](https://github.com/rdagher/ppk2-lib), on the NPU and on the CPU with TensorFlow Lite Micro (TFLM):
 
-![Time per inference](bench/results/latency.png)
-![Charge per inference](bench/results/charge.png)
+![Current of the chip during one keyword-spotting inference, on the NPU and on the CPU](bench/results/trace_kws.png)
+
+The figure shows one keyword-spotting inference each way, on the same scales. The shaded area is the charge.
 
 On the NPU an inference takes 5.6 to 16.1 times less time and 3.9 to 13.8 times less charge than with TFLM on the same chip. See [bench/README.md](bench/README.md) for the figures, what they include and their limits.
 

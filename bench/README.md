@@ -46,8 +46,21 @@ standard deviation of the charge over the regions of one capture.
 
 The charge ratio is that of the medians.
 
+![Current of the chip during one inference of each model, on the NPU and on the CPU](results/traces.png)
+
+Each pair of panels shows one inference of a model, on the NPU and on the CPU, on the same scales.
+The shaded area is the charge and the black bar is the marker. The inference drawn is the one
+with the median charge, so its figures are those of the table. The lighter pulses after an Axon
+inference are the next ones.
+
+The curves are a moving average over 0.2 ms. The current axis stops at 6 mA: the peaks that
+leave it last a few samples and are the PPK2's wake-up bursts, described under
+[Measurement](#measurement).
+
+While it runs, the NPU raises the mean current of the chip by 0.4 to 1.0 mA over the CPU alone.
+The inference is 5.6 to 16.1 times shorter, so the charge is lower.
+
 ![Time per inference](results/latency.png)
-![Charge per inference](results/charge.png)
 
 Between two inferences the firmware sleeps for 50 ms. The median current there is 1.44 to 1.49 µA
 in the eight captures.
@@ -112,13 +125,14 @@ With the PPK2 in the supply path, the debug port answers only while the PPK2 pas
 Capture from a power cycle, never in the session of the flash. After a flash the chip stays in debug
 mode and reads high: the idle current is then 36 to 39 µA, where it is 1.4 to 1.5 µA here.
 
-To build, measure and draw, run:
+To build, measure and draw, run the following commands. `plot.py` needs the captures of the eight
+configurations, named `<backend>_<model>`.
 
 ```sh
 just compile                  # the four models, into model/outputs/
 just bench axon mlperf_kws    # or tflm; mlperf_ad, mlperf_ic, mlperf_vww
 just measure axon_kws         # flash, then capture 12 s from a power cycle, and report
-python3 bench/plot.py         # the two figures, from bench/results/*.txt
+python3 bench/plot.py         # the three figures, from bench/results/
 ```
 
 `just measure axon_kws` ends with the report:
