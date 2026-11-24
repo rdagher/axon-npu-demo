@@ -8,7 +8,14 @@ Minimal Axon NPU flow on the nRF54LM20 DK (nRF54LM20B SoC, board target `nrf54lm
 
 The default model is `tinyml_kws`, one of the four [MLPerf Tiny](https://github.com/mlcommons/tiny) models that the Edge AI Add-on ships already compiled, with three test vectors each. The app includes those headers from the add-on in the west workspace; this repository contains no add-on file.
 
-`just compile` is optional: it downloads the MLPerf Tiny keyword spotting `.tflite` and runs the Axon compiler on it, to show how such headers are produced.
+`just compile` is optional: it downloads the four MLPerf Tiny `.tflite` files and runs the Axon compiler on them, to show how such headers are produced.
+
+[`bench/`](bench/README.md) is a second app that measures those four models with a PPK2, on the NPU and on the CPU with TFLM:
+
+![Time per inference](bench/results/latency.png)
+![Energy per inference](bench/results/energy.png)
+
+On the NPU an inference takes 5.7 to 16.1 times less time and 4.1 to 14.2 times less energy than with TFLM on the same chip. See [bench/README.md](bench/README.md) for the figures, what they include and how to reproduce them.
 
 ```mermaid
 flowchart LR
@@ -103,11 +110,11 @@ just build mlperf_kws model/outputs
 
 `just compile`:
 
-1. downloads `kws_ref_model.tflite` from [mlcommons/tiny](https://github.com/mlcommons/tiny/tree/4addd0fa08d216e20637637874e084895f289da4/benchmark/training/keyword_spotting/trained_models) at a pinned commit and checks its SHA-256,
-2. writes three random inputs with `model/make_test_data.py`, run inside the compiler image,
+1. downloads the four reference models from [mlcommons/tiny](https://github.com/mlcommons/tiny/tree/4addd0fa08d216e20637637874e084895f289da4/benchmark/training) at a pinned commit and checks their SHA-256,
+2. writes three random inputs per model with `model/make_test_data.py`, run inside the compiler image,
 3. runs the Axon compiler (Docker image built from the add-on) on `model/axon.yaml`.
 
-The compiler writes to `model/outputs/`, which is not committed:
+The compiler writes to `model/outputs/`, which is not committed. For each of `mlperf_kws`, `mlperf_ad`, `mlperf_ic` and `mlperf_vww`:
 
 | File | Content |
 |---|---|
@@ -116,7 +123,7 @@ The compiler writes to `model/outputs/`, which is not committed:
 | `nrf_axon_model_mlperf_kws_layers_.h` | per-layer models, not used here |
 | `nrf_axon_model_mlperf_kws_test_inference_labels_.csv` | the same expected outputs as CSV, not used here |
 
-The result is not the add-on's `tinyml_kws`: same layers and sizes, different weights, and `int8` outputs (12 B) where the add-on's header has `int32` (48 B). The inputs are random, so the printed classes mean nothing; only the bit-exact check does.
+`mlperf_kws` is not the add-on's `tinyml_kws`: same layers and sizes, different weights, and `int8` outputs (12 B) where the add-on's header has `int32` (48 B). The inputs are random, so the printed classes mean nothing; only the bit-exact check does.
 
 ## Axon compiler output
 
@@ -181,7 +188,7 @@ References:
 ## Notes
 
 - `just flash` and `just monitor` use the only J-Link kit attached. With several, they stop and ask for `DK_SERIAL=<serial number>`, as listed by `nrfutil device list`.
-- The compiler in add-on v3.0.0 (Axon compiler v2.0.1) fails without `classification_labels` in `model/axon.yaml`.
+- The compiler in add-on v3.0.0 (Axon compiler v2.0.1) fails without the `classification_labels` key in `model/axon.yaml`. A model without classes, like anomaly detection, takes the key empty and no `test_labels`.
 - The compiler writes the test vectors header only with `test_data` and `header_file_test_vector_cnt` above 0; the default is 0.
 - The `us` column is the time of one `nrf_axon_nn_model_infer_sync()` call, measured with `k_cycle_get_32()` (1 µs resolution). It includes NPU power-up and locking, the input copy, the NPU run, any CPU layer, the output copy and power-down.
 - Tested on macOS. Linux is untested; Windows is not supported (`flash` and `monitor` need `bash`).
@@ -195,4 +202,4 @@ References:
 |---|---|
 | Everything in this repository | [Apache-2.0](LICENSE) |
 | nRF Connect SDK, Edge AI Add-on | Not in this repository. `west` fetches them under their own licences: Nordic's 5-Clause licence, which restricts use to Nordic devices, for the add-on, sdk-nrf and nrfxlib; Apache-2.0 for Zephyr; others for the remaining modules. The compiled models and test vectors are part of the add-on |
-| `kws_ref_model.tflite` | Not in this repository. `just compile` downloads it from [mlcommons/tiny](https://github.com/mlcommons/tiny), which is Apache-2.0. `benchmark/training/keyword_spotting/README.md` in that repository says the model is trained on Speech Commands v2, a dataset released under CC BY 4.0 according to [its paper](https://arxiv.org/abs/1804.03209) |
+| MLPerf Tiny `.tflite` models | Not in this repository. `just compile` downloads them from [mlcommons/tiny](https://github.com/mlcommons/tiny), which is Apache-2.0. `benchmark/training/keyword_spotting/README.md` in that repository says the model is trained on Speech Commands v2, a dataset released under CC BY 4.0 according to [its paper](https://arxiv.org/abs/1804.03209) |
