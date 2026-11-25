@@ -111,7 +111,7 @@ Largest difference on the dev kit, over the three test vectors:
 
 Axon is bit exact. TFLM is not: it rounds differently. To see by how much on the
 host, where TFLite runs the same `.tflite` on the same test vectors, run `just check`. It needs Docker
-and the models of `just compile`:
+and the models of `just compile`, and it fails above the same tolerance:
 
 ```console
 $ just check

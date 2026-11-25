@@ -7,6 +7,9 @@ import sys
 import numpy as np
 import tensorflow as tf
 
+TOLERANCE = 2  # as CONFIG_BENCH_TOLERANCE of the bench
+failed = False
+
 for name in sys.argv[1:]:
     interpreter = tf.lite.Interpreter(f"{name}.tflite")
     interpreter.allocate_tensors()
@@ -26,3 +29,6 @@ for name in sys.argv[1:]:
         got = interpreter.get_tensor(out["index"]).astype(np.int64).ravel()
         worst = max(worst, int(np.abs(got - expected[:got.size]).max()))
     print(f"{name}: largest difference {worst} of 255")
+    failed |= worst > TOLERANCE
+
+sys.exit(failed)
