@@ -54,7 +54,11 @@ int main(void)
 			if (err || diff > CONFIG_BENCH_TOLERANCE) {
 				return -1; /* no more markers: a wrong inference is not measured */
 			}
-			k_sleep(K_MSEC(CONFIG_BENCH_GAP_MS));
+			if (CONFIG_BENCH_GAP_MS > 0) {
+				k_sleep(K_MSEC(CONFIG_BENCH_GAP_MS));
+			} else {
+				k_busy_wait(100); /* back to back: awake, with the marker low for 10 samples */
+			}
 		}
 	}
 }
