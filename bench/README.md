@@ -48,7 +48,7 @@ not the sleep between two inferences or anything else the application does.
 | Image classification | 16.1 | 13.9 |
 | Visual wake words | 13.4 | 10.8 |
 
-The charge ratio is that of the medians.
+The charge ratio is computed from the median charges.
 
 ![Time per inference of the four models](results/latency.png)
 ![Charge per inference of the four models](results/charge.png)
@@ -59,8 +59,7 @@ Each panel has its own scale. The charge is the median over the regions.
 
 Each pair of panels shows one inference of a model, on the NPU and on the CPU, on the same scales.
 The samples are raw, at 100,000 per second. The shaded area is the charge and the black bar is the
-marker. The inference drawn is the one with the median charge, so its figures are those of the
-table. The lighter pulses after an Axon inference are the next ones.
+marker. The inference drawn is the one with the median charge, so its duration and charge match the table. The lighter pulses after an Axon inference are the next ones.
 
 The current axis stops at 10 mA. Where samples leave it, the panel gives the peak. Those peaks last
 a few samples at a wake-up and are the PPK2's wake-up bursts, described under
@@ -78,8 +77,7 @@ captures themselves, 47 to 105 MB each, are not in the repository.
 ## Measurement
 
 - The marker is raised just before the inference call and dropped just after it:
-  `PPK2_TRACE_SCOPE` in [`src/main.c`](src/main.c). The figures are those of the whole device
-  under test (DUT) while the marker is high.
+  `PPK2_TRACE_SCOPE` in [`src/main.c`](src/main.c). The time and the charge cover the whole device under test (DUT) while the marker is high.
 - Axon: one `nrf_axon_nn_model_infer_sync()` call. It includes NPU power-up and locking, the
   input copy, the NPU run, the softmax on the CPU where the model has one, the output copy and
   power-down.
@@ -88,7 +86,7 @@ captures themselves, 47 to 105 MB each, are not in the repository.
   read tens of mA too high for 40 µs, which moves the mean of a short region. See zephyr-ppk2's
   [limitations](https://github.com/rdagher/zephyr-ppk2/blob/main/docs/limitations.md#wake-up-bursts).
 - No energy is given. A PPK2 measures current, and the charge follows from it with no assumption.
-  An energy needs the supply voltage, which the capture does not contain. At a constant voltage
+  To give an energy, the supply voltage is required, and the capture does not contain it. At a constant voltage
   the energy ratio is the charge ratio. [MLPerf Tiny](https://github.com/mlcommons/tiny) reports the
   energy per inference: here it is the charge times 3.3 V, the supply voltage set on the kit.
 - The measurement firmware has no UART: [`quiet.conf`](quiet.conf).
@@ -110,8 +108,7 @@ Largest difference on the dev kit, over the three test vectors:
 | Visual wake words | 0 | 0 |
 
 Axon is bit exact. TFLM is not: it rounds differently. To see by how much on the
-host, where TFLite runs the same `.tflite` on the same test vectors, run `just check`. It needs Docker
-and the models of `just compile`, and it fails above the same tolerance:
+host, where TFLite runs the same `.tflite` on the same test vectors, run `just check`. Docker and the models compiled by `just compile` are required. The command fails above the same tolerance:
 
 ```console
 $ just check
@@ -121,7 +118,7 @@ mlperf_ic: largest difference 1 of 255
 mlperf_vww: largest difference 1 of 255
 ```
 
-The test vectors store an image channel first, as the Axon driver takes it. A TFLite tensor is
+The test vectors store an image channel first, as the Axon driver expects it. A TFLite tensor is
 channel last, so `src/tflm.cc` reorders the bytes of the two image models.
 
 ## Limitations
@@ -158,13 +155,13 @@ Wire the bench as follows. See zephyr-ppk2's
 - `VCC` to the kit's supply.
 
 With the PPK2 in the supply path, the debug port answers only while the PPK2 passes power.
-`west ppk2 run` and `west ppk2 power on --hold` do that.
+`west ppk2 run` and `west ppk2 power on --hold` keep the power on.
 
 Capture from a power cycle, never in the session of the flash. After a flash the chip stays in debug
 mode and reads high: the idle current is then 36 to 39 µA, where it is 1.4 to 1.5 µA here.
 
 To build, measure and draw, run the following commands. The models are `mlperf_kws`, `mlperf_ad`,
-`mlperf_ic` and `mlperf_vww`. `bench/plot.py` needs the captures of the eight configurations.
+`mlperf_ic` and `mlperf_vww`. To draw the figures, the captures of the eight configurations are required.
 
 ```sh
 just compile                  # the four models, into model/outputs/

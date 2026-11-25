@@ -29,7 +29,7 @@ Both apps run a model on those test vectors:
 - nRF54LM20 DK (PCA10184) with the nRF54LM20B; the nRF54LM20A has no NPU
 - [`nrfutil`](https://docs.nordicsemi.com/bundle/nrfutil/page/guides/installing.html)
   with `nrfutil install sdk-manager device`
-- [SEGGER J-Link](https://www.segger.com/downloads/jlink/) software, which `nrfutil device` needs
+- [SEGGER J-Link](https://www.segger.com/downloads/jlink/) software, required by `nrfutil device`
 - [`just`](https://just.systems)
 - Docker and `curl`, for `just compile` only
 - Linux: [nrf-udev](https://github.com/NordicSemiconductor/nrf-udev) rules for

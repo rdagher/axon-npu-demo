@@ -94,7 +94,7 @@ See [`src/main.c`](src/main.c):
 
 Not every layer runs on the NPU: the command streams of the three classifiers end with a softmax computed on the CPU, in `drivers/axon/nrf_axon_nn_op_extensions.c`.
 
-An application needs three things to use the NPU: `CONFIG_NRF_AXON=y` and `CONFIG_NRF_AXON_INTERLAYER_BUFFER_SIZE` in `prj.conf`, and the `axon` node enabled in a devicetree overlay (`boards/`), since it is disabled by default.
+To use the NPU in an application, set `CONFIG_NRF_AXON=y` and `CONFIG_NRF_AXON_INTERLAYER_BUFFER_SIZE` in `prj.conf`, and enable the `axon` node in a devicetree overlay (`boards/`). The node is disabled by default.
 
 ## Add-on files
 
@@ -133,10 +133,10 @@ To reuse an existing add-on v3.0.0 workspace instead, skip `just setup`, install
 ## Notes
 
 - `just flash` and `just monitor` use the only J-Link kit attached. With several, they stop and ask for `DK_SERIAL=<serial number>`, as listed by `nrfutil device list`.
-- The compiler in add-on v3.0.0 (Axon compiler v2.0.1) fails without the `classification_labels` key in [`model/axon.yaml`](../model/axon.yaml). A model without classes, like anomaly detection, takes the key empty and no `test_labels`.
+- The compiler in add-on v3.0.0 (Axon compiler v2.0.1) fails without the `classification_labels` key in [`model/axon.yaml`](../model/axon.yaml). For a model without classes, like anomaly detection, leave the key empty and remove `test_labels`.
 - The compiler writes the test vectors header only with `test_data` and `header_file_test_vector_cnt` above 0; the default is 0.
 - The `us` column is the time of one `nrf_axon_nn_model_infer_sync()` call, measured with `k_cycle_get_32()` (1 µs resolution). It includes NPU power-up and locking, the input copy, the NPU run, any CPU layer, the output copy and power-down.
-- Tested on macOS. Linux is untested; Windows is not supported (`flash` and `monitor` need `bash`).
+- Tested on macOS. Linux is untested; Windows is not supported (`just flash` and `just monitor` are bash scripts).
 - A model header defines its data, so it can be included in one C file only.
 - `just build` passes `-DAXON_MODEL` and `-DAXON_MODEL_DIR` to CMake; `CMakeLists.txt` reads them with `zephyr_get()`, since a plain cache variable does not reach the app image under sysbuild.
 - Paths containing spaces are not supported by the SDK's build system.
