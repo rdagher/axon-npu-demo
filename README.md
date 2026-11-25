@@ -11,6 +11,19 @@ The models are the four of [MLPerf Tiny](https://github.com/mlcommons/tiny). The
 
 On the NPU an inference is 5.6 to 16.1 times shorter, and it draws 3.9 to 13.9 times less charge from the supply. See [bench/README.md](bench/README.md) for the measurement and its limits.
 
+## How it works
+
+The four models are declared in [`model/axon.yaml`](model/axon.yaml): for each, its `.tflite` file, its labels and its test inputs. `just compile` turns them into C headers in three steps:
+
+1. It downloads the four `.tflite` files from MLPerf Tiny, at a pinned commit, and checks their SHA-256.
+2. It writes three random inputs per model.
+3. It runs Nordic's Axon compiler, in Docker. For each model the compiler writes a header with the NPU commands and the weights, and a second header with the three inputs and the outputs it expects for them.
+
+Both apps run a model on those test vectors:
+
+- `app/` compares each output with the expected one, byte for byte. By default it uses the headers that the add-on ships already compiled, so you can build it without compiling a model first (`just compile`).
+- `bench/` runs the same vectors on the NPU and on the CPU, raises a GPIO around each inference, and lets the PPK2 measure the time and the charge between the two edges.
+
 ## Requirements
 
 - nRF54LM20 DK (PCA10184) with the nRF54LM20B; the nRF54LM20A has no NPU
