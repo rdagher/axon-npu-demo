@@ -99,7 +99,8 @@ more than 2 of 255 (`CONFIG_BENCH_TOLERANCE`), so a wrong inference is not measu
 build prints the largest difference of each inference.
 
 Axon is bit exact on the dev kit. TFLM is not: it rounds differently. To see by how much on the
-host, where TFLite runs the same `.tflite` on the same test vectors, run:
+host, where TFLite runs the same `.tflite` on the same test vectors, run `just check`. It needs Docker
+and the models of `just compile`:
 
 ```console
 $ just check
@@ -189,6 +190,7 @@ just monitor
 | `quiet.conf` | UART off, for measuring |
 | `boards/` | The marker pin |
 | [`plot.py`](plot.py) | The figures |
+| [`../model/check_outputs.py`](../model/check_outputs.py) | The host check of `just check` |
 
 ## See also
 
