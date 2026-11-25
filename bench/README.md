@@ -61,9 +61,10 @@ Each pair of panels shows one inference of a model, on the NPU and on the CPU, o
 The samples are raw, at 100,000 per second. The shaded area is the charge and the black bar is the
 marker. The inference drawn is the one with the median charge, so its duration and charge match the table. The lighter pulses after an Axon inference are the next ones.
 
-The current axis stops at 10 mA. Where samples leave it, the panel gives the peak. Those peaks last
-a few samples at a wake-up and are the PPK2's wake-up bursts, described under
-[Measurement](#measurement).
+The current axis stops at 10 mA. Where samples leave it, the panel gives the peak. Those peaks,
+and the spike at the start of each Axon inference, come from the PPK2 at a wake-up, as described
+under [Measurement](#measurement). Back to back, with no wake-up, the highest sample of an Axon
+inference is 4.3 to 4.8 mA for three of the four models.
 
 While it runs, the NPU raises the mean current of the chip by 0.4 to 1.1 mA over the CPU alone.
 The inference is 5.6 to 16.1 times shorter, so the charge is lower.
@@ -73,6 +74,55 @@ in the eight captures.
 
 The figures come from [`results/*.txt`](results), as printed by `west ppk2 attribute`. The
 captures themselves, 47 to 105 MB each, are not in the repository.
+
+## Comparison with Nordic's figures
+
+Nordic publishes the inference time, the average current at 3 V and the energy of the same four
+models on its [Axon NPU](https://www.nordicsemi.com/Products/Technologies/Edge-AI/Axon-NPU) page.
+Its energy is the time multiplied by the current and by 3 V. The page does not describe how the
+time and the current were measured. The nRF54LM20B
+[datasheet](https://docs.nordicsemi.com/r/bundle/ps_nrf54lm20a/page/elspec.html-unique_487521905)
+gives the same four currents as typical values, under `IAXONS0` to `IAXONS3`. The table below
+gives the figures of the page as read on 25 November 2026.
+
+To compare, the kit was set to 3.0 V and the four models were captured again on the NPU, back to
+back: the firmware stays awake for 100 µs between two inferences, with no sleep. The figures
+below are computed as Nordic's: the average current is the median charge divided by the time, and
+the energy is the time multiplied by that current and by 3 V.
+
+| Model | Time, Nordic | Time, here | Current, Nordic | Current, here | Energy, Nordic | Energy, here |
+|---|---:|---:|---:|---:|---:|---:|
+| Keyword spotting | 4.5 ms | 5.263 ms | 3.0 mA | 3.29 mA | 40.5 µJ | 51.9 µJ |
+| Anomaly detection | 1.3 ms | 1.355 ms | 3.5 mA | 3.56 mA | 13.7 µJ | 14.5 µJ |
+| Image classification | 17.9 ms | 18.850 ms | 2.7 mA | 2.94 mA | 145 µJ | 166.2 µJ |
+| Visual wake words | 14.4 ms | 16.432 ms | 2.8 mA | 3.04 mA | 121 µJ | 150.0 µJ |
+
+With Nordic's figure as the reference, the time is 4 to 17 % longer here, the current 0.06 to
+0.29 mA higher, and the energy 5 to 28 % higher.
+
+On the CPU, Nordic gives a time only: 70, 7, 303 and 223 ms. The times of [Results](#results),
+measured at 3.3 V, are within 1.4 % of them for three models, and 10 % longer for anomaly
+detection. The charge on the CPU and the charge ratios are measured here only.
+
+Two conditions were tested, and neither explains the longer times:
+
+- The supply voltage. From 3.3 V to 3.0 V the time of each model stays within 48 µs, and the
+  charge rises by 6 to 9 %.
+- The wake-up from sleep. Back to back, the time stays within 7 µs, and the charge falls by
+  0.7 to 2.5 %.
+
+The time measured here agrees with Nordic's own test log. The add-on's
+[inference test](https://github.com/nrfconnect/sdk-edge-ai/blob/v3.0.0/tests/axon/inference/README.rst)
+prints 5,213 ticks at 1,000,000 ticks per second for one keyword-spotting inference, which is
+5.2 ms. The log covers keyword spotting only, so the other three models are not checked this way.
+The cause of the difference with the 4.5 ms of the page is not established.
+
+The reports of these eight captures are in [`results/3v0/`](results/3v0). To capture one, set the
+kit to 3.0 V in the Board Configurator and run:
+
+```sh
+VDD=3.0 BENCH_GAP_MS=0 just measure axon mlperf_kws 12
+```
 
 ## Measurement
 

@@ -1,0 +1,3 @@
+capture: 1199006 samples, 11.99 s powered
+D0 infer               n=602   width    18.850 ms  avg   2940.06 µA  peak     4782 µA  charge    55.419 ± 0.053 µC (median 55.416)
+idle (no channel high) median   1933.53 µA  mean   2021.29 µA
