@@ -7,9 +7,9 @@ Two Zephyr apps for the Axon NPU of the nRF54LM20B, on the nRF54LM20 DK:
 
 The models are the four of [MLPerf Tiny](https://github.com/mlcommons/tiny). The [Edge AI Add-on](https://github.com/nrfconnect/sdk-edge-ai) ships them compiled, with three test vectors each, and the app includes those headers from the west workspace. This repository contains no add-on file.
 
-![Duration and mean current of one inference of the four models, on the NPU and on the CPU](bench/results/overview.png)
+![Duration and charge of one inference of the four models, on the NPU and on the CPU](bench/results/overview.png)
 
-On the NPU an inference is 5.6 to 16.1 times shorter, at a mean current 0.4 to 1.0 mA higher. Its charge is 3.9 to 13.8 times lower. See [bench/README.md](bench/README.md) for the measurement and its limits.
+On the NPU an inference is 5.6 to 16.1 times shorter, and it draws 3.9 to 13.8 times less charge from the supply. See [bench/README.md](bench/README.md) for the measurement and its limits.
 
 ## Requirements
 

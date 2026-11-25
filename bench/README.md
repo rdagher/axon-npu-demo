@@ -26,19 +26,23 @@ header, at 100,000 samples per second. The kit's supply voltage is set to 3.3 V 
 [Board Configurator](https://docs.nordicsemi.com/bundle/nrf-connect-board-configurator/page/index.html)
 app, and the captures are given `--vdd 3.3`. Each capture starts from a power cycle.
 
-| Model | Backend | Time | Mean current | Charge, median | Charge, mean ± sd | Regions |
-|---|---|---:|---:|---:|---:|---:|
-| Keyword spotting | Axon | 5.270 ms | 3,228 µA | 16.30 µC | 17.0 ± 1.8 µC | 207 |
-| | TFLM | 68.854 ms | 2,309 µA | 158.97 µC | 158.98 ± 0.10 µC | 205 |
-| Anomaly detection | Axon | 1.362 ms | 3,382 µA | 4.57 µC | 4.61 ± 0.27 µC | 222 |
-| | TFLM | 7.686 ms | 2,348 µA | 18.014 µC | 18.049 ± 0.096 µC | 423 |
-| Image classification | Axon | 18.868 ms | 2,757 µA | 51.93 µC | 52.02 ± 0.98 µC | 166 |
-| | TFLM | 303.001 ms | 2,373 µA | 719.07 µC | 719.03 ± 0.36 µC | 69 |
-| Visual wake words | Axon | 16.451 ms | 2,823 µA | 46.48 µC | 46.43 ± 0.65 µC | 172 |
-| | TFLM | 219.995 ms | 2,322 µA | 510.3 µC | 510.9 ± 1.0 µC | 90 |
+| Model | Backend | Time | Mean current | Charge, median | Inferences per mAh | Charge, mean ± sd | Regions |
+|---|---|---:|---:|---:|---:|---:|---:|
+| Keyword spotting | Axon | 5.270 ms | 3,228 µA | 16.30 µC | 220,900 | 17.0 ± 1.8 µC | 207 |
+|  | TFLM | 68.854 ms | 2,309 µA | 158.97 µC | 22,600 | 158.98 ± 0.10 µC | 205 |
+| Anomaly detection | Axon | 1.362 ms | 3,382 µA | 4.57 µC | 787,700 | 4.61 ± 0.27 µC | 222 |
+|  | TFLM | 7.686 ms | 2,348 µA | 18.014 µC | 199,800 | 18.049 ± 0.096 µC | 423 |
+| Image classification | Axon | 18.868 ms | 2,757 µA | 51.93 µC | 69,300 | 52.02 ± 0.98 µC | 166 |
+|  | TFLM | 303.001 ms | 2,373 µA | 719.07 µC | 5,000 | 719.03 ± 0.36 µC | 69 |
+| Visual wake words | Axon | 16.451 ms | 2,823 µA | 46.48 µC | 77,500 | 46.43 ± 0.65 µC | 172 |
+|  | TFLM | 219.995 ms | 2,322 µA | 510.3 µC | 7,100 | 510.9 ± 1.0 µC | 90 |
 
 A region is one inference: the stretch where the marker is high. "mean ± sd" is the mean and the
 standard deviation of the charge over the regions of one capture.
+
+The charge is what one inference draws from the supply. One mAh is 3,600,000 µC, so the
+inferences per mAh are that number divided by the median charge. They count the inference alone,
+not the sleep between two inferences or anything else the application does.
 
 | Model | Time, TFLM / Axon | Charge, TFLM / Axon |
 |---|---:|---:|
@@ -88,7 +92,8 @@ captures themselves, 47 to 105 MB each, are not in the repository.
   [limitations](https://github.com/rdagher/zephyr-ppk2/blob/main/docs/limitations.md#wake-up-bursts).
 - No energy is given. A PPK2 measures current, and the charge follows from it with no assumption.
   An energy needs the supply voltage, which the capture does not contain. At a constant voltage
-  the energy ratio is the charge ratio.
+  the energy ratio is the charge ratio. [MLPerf Tiny](https://github.com/mlcommons/tiny) reports the
+  energy per inference: here it is the charge times 3.3 V, the supply voltage set on the kit.
 - The measurement firmware has no UART: [`quiet.conf`](quiet.conf).
 
 ## Output check
