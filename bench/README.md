@@ -18,9 +18,6 @@ Measured on one dev kit with one PPK2. See [Limitations](#limitations) for what 
 
 ## Results
 
-The captures below predate two changes to the firmware: the input layout given to TFLM for image
-classification and visual wake words, and the output check. They are to be redone.
-
 Measured on one nRF54LM20 DK with one PPK2, in Ampere meter mode at the kit's current-measurement
 header, at 100,000 samples per second. The kit's supply voltage is set to 3.3 V in the
 [Board Configurator](https://docs.nordicsemi.com/bundle/nrf-connect-board-configurator/page/index.html)
@@ -28,14 +25,14 @@ app, and the captures are given `--vdd 3.3`. Each capture starts from a power cy
 
 | Model | Backend | Time | Mean current | Charge, median | Inferences per mAh | Charge, mean ± sd | Regions |
 |---|---|---:|---:|---:|---:|---:|---:|
-| Keyword spotting | Axon | 5.270 ms | 3,228 µA | 16.30 µC | 220,900 | 17.0 ± 1.8 µC | 207 |
-|  | TFLM | 68.854 ms | 2,309 µA | 158.97 µC | 22,600 | 158.98 ± 0.10 µC | 205 |
-| Anomaly detection | Axon | 1.362 ms | 3,382 µA | 4.57 µC | 787,700 | 4.61 ± 0.27 µC | 222 |
-|  | TFLM | 7.686 ms | 2,348 µA | 18.014 µC | 199,800 | 18.049 ± 0.096 µC | 423 |
-| Image classification | Axon | 18.868 ms | 2,757 µA | 51.93 µC | 69,300 | 52.02 ± 0.98 µC | 166 |
-|  | TFLM | 303.001 ms | 2,373 µA | 719.07 µC | 5,000 | 719.03 ± 0.36 µC | 69 |
-| Visual wake words | Axon | 16.451 ms | 2,823 µA | 46.48 µC | 77,500 | 46.43 ± 0.65 µC | 172 |
-|  | TFLM | 219.995 ms | 2,322 µA | 510.3 µC | 7,100 | 510.9 ± 1.0 µC | 90 |
+| Keyword spotting | Axon | 5.279 ms | 3,343 µA | 16.5 µC | 217,800 | 17.6 ± 2.1 µC | 207 |
+|  | TFLM | 68.988 ms | 2,303 µA | 158.859 µC | 22,700 | 158.867 ± 0.098 µC | 205 |
+| Anomaly detection | Axon | 1.366 ms | 3,403 µA | 4.58 µC | 786,700 | 4.65 ± 0.35 µC | 222 |
+|  | TFLM | 7.714 ms | 2,308 µA | 17.776 µC | 202,500 | 17.803 ± 0.074 µC | 422 |
+| Image classification | Axon | 18.897 ms | 2,725 µA | 51.44 µC | 70,000 | 51.49 ± 0.57 µC | 166 |
+|  | TFLM | 303.865 ms | 2,352 µA | 714.77 µC | 5,000 | 714.81 ± 0.33 µC | 69 |
+| Visual wake words | Axon | 16.465 ms | 2,822 µA | 46.53 µC | 77,400 | 46.46 ± 0.58 µC | 172 |
+|  | TFLM | 220.903 ms | 2,278 µA | 503.23 µC | 7,200 | 503.21 ± 0.23 µC | 90 |
 
 A region is one inference: the stretch where the marker is high. "mean ± sd" is the mean and the
 standard deviation of the charge over the regions of one capture.
@@ -46,10 +43,10 @@ not the sleep between two inferences or anything else the application does.
 
 | Model | Time, TFLM / Axon | Charge, TFLM / Axon |
 |---|---:|---:|
-| Keyword spotting | 13.1 | 9.8 |
+| Keyword spotting | 13.1 | 9.6 |
 | Anomaly detection | 5.6 | 3.9 |
-| Image classification | 16.1 | 13.8 |
-| Visual wake words | 13.4 | 11.0 |
+| Image classification | 16.1 | 13.9 |
+| Visual wake words | 13.4 | 10.8 |
 
 The charge ratio is that of the medians.
 
@@ -69,7 +66,7 @@ The current axis stops at 10 mA. Where samples leave it, the panel gives the pea
 a few samples at a wake-up and are the PPK2's wake-up bursts, described under
 [Measurement](#measurement).
 
-While it runs, the NPU raises the mean current of the chip by 0.4 to 1.0 mA over the CPU alone.
+While it runs, the NPU raises the mean current of the chip by 0.4 to 1.1 mA over the CPU alone.
 The inference is 5.6 to 16.1 times shorter, so the charge is lower.
 
 Between two inferences the firmware sleeps for 50 ms. The median current there is 1.44 to 1.49 µA
@@ -103,7 +100,16 @@ compares each output with the expected one. It stops raising the marker when a v
 more than 2 of 255 (`CONFIG_BENCH_TOLERANCE`), so a wrong inference is not measured. The `verify`
 build prints the largest difference of each inference.
 
-Axon is bit exact on the dev kit. TFLM is not: it rounds differently. To see by how much on the
+Largest difference on the dev kit, over the three test vectors:
+
+| Model | Axon | TFLM |
+|---|---:|---:|
+| Keyword spotting | 0 | 2 |
+| Anomaly detection | 0 | 2 |
+| Image classification | 0 | 1 |
+| Visual wake words | 0 | 0 |
+
+Axon is bit exact. TFLM is not: it rounds differently. To see by how much on the
 host, where TFLite runs the same `.tflite` on the same test vectors, run `just check`. It needs Docker
 and the models of `just compile`:
 
@@ -170,10 +176,10 @@ just measure-all                   # the eight captures, then the figures
 `just measure axon mlperf_kws 12` ends with the report:
 
 ```console
-captured 1200000 samples over 12.00 s (100012 Hz)
-capture: 1199018 samples, 11.99 s powered
-D0 infer               n=207   width     5.272 ms  avg   3262.61 µA  peak    16802 µA  charge    17.200 ± 2.020 µC (median 16.303)
-idle (no channel high) median      1.49 µA  mean     28.53 µA
+captured 1200000 samples over 12.00 s (100014 Hz)
+capture: 1198907 samples, 11.99 s powered
+D0 infer               n=207   width     5.279 ms  avg   3342.65 µA  peak    15346 µA  charge    17.646 ± 2.130 µC (median 16.530)
+idle (no channel high) median      1.49 µA  mean     30.28 µA
 ```
 
 To check the outputs over the UART, hold the power on in another terminal with

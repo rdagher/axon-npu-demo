@@ -9,7 +9,7 @@ The models are the four of [MLPerf Tiny](https://github.com/mlcommons/tiny). The
 
 ![Duration and charge of one inference of the four models, on the NPU and on the CPU](bench/results/overview.png)
 
-On the NPU an inference is 5.6 to 16.1 times shorter, and it draws 3.9 to 13.8 times less charge from the supply. See [bench/README.md](bench/README.md) for the measurement and its limits.
+On the NPU an inference is 5.6 to 16.1 times shorter, and it draws 3.9 to 13.9 times less charge from the supply. See [bench/README.md](bench/README.md) for the measurement and its limits.
 
 ## Requirements
 
