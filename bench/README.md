@@ -18,6 +18,9 @@ Measured on one dev kit with one PPK2. See [Limitations](#limitations) for what 
 
 ## Results
 
+The captures below predate two changes to the firmware: the input layout given to TFLM for image
+classification and visual wake words, and the output check. They are to be redone.
+
 Measured on one nRF54LM20 DK with one PPK2, in Ampere meter mode at the kit's current-measurement
 header, at 100,000 samples per second. The kit's supply voltage is set to 3.3 V in the
 [Board Configurator](https://docs.nordicsemi.com/bundle/nrf-connect-board-configurator/page/index.html)
@@ -88,6 +91,27 @@ captures themselves, 47 to 105 MB each, are not in the repository.
   the energy ratio is the charge ratio.
 - The measurement firmware has no UART: [`quiet.conf`](quiet.conf).
 
+## Output check
+
+Both backends must give the output the Axon compiler expects, within a tolerance. The firmware
+compares each output with the expected one. It stops raising the marker when a value differs by
+more than 2 of 255 (`CONFIG_BENCH_TOLERANCE`), so a wrong inference is not measured. The `verify`
+build prints the largest difference of each inference.
+
+Axon is bit exact on the dev kit. TFLM is not: it rounds differently. To see by how much on the
+host, where TFLite runs the same `.tflite` on the same test vectors, run:
+
+```console
+$ just check
+mlperf_kws: largest difference 2 of 255
+mlperf_ad: largest difference 1 of 255
+mlperf_ic: largest difference 1 of 255
+mlperf_vww: largest difference 1 of 255
+```
+
+The test vectors store an image channel first, as the Axon driver takes it. A TFLite tensor is
+channel last, so `src/tflm.cc` reorders the bytes of the two image models.
+
 ## Limitations
 
 Tested with nRF Connect SDK v3.4.1, add-on v3.0.0, TFLM at `fcc760a`, zephyr-ppk2 at `a5fbce7` and
@@ -100,8 +124,7 @@ ppk2-lib 0.1.0, from macOS 26.5.
 - Axon's outputs are bit exact against the outputs the Axon compiler computed on the host, for
   the four models.
 - TFLM's outputs are close to those, not identical: the two implementations round differently.
-  With random inputs one difference is large: an output of image classification is -69 with TFLM
-  and -128 with Axon. Agreement on real data was not checked.
+  See [Output check](#output-check). Agreement on real data was not checked.
 - This compares two ways to deploy a model on this chip. It does not measure the NPU alone:
   TFLM is an interpreter, and code written for the CPU by hand could be faster.
 
@@ -128,17 +151,17 @@ With the PPK2 in the supply path, the debug port answers only while the PPK2 pas
 Capture from a power cycle, never in the session of the flash. After a flash the chip stays in debug
 mode and reads high: the idle current is then 36 to 39 µA, where it is 1.4 to 1.5 µA here.
 
-To build, measure and draw, run the following commands. `plot.py` needs the captures of the eight
-configurations, named `<backend>_<model>`.
+To build, measure and draw, run the following commands. The models are `mlperf_kws`, `mlperf_ad`,
+`mlperf_ic` and `mlperf_vww`. `bench/plot.py` needs the captures of the eight configurations.
 
 ```sh
 just compile                  # the four models, into model/outputs/
-just bench axon mlperf_kws    # or tflm; mlperf_ad, mlperf_ic, mlperf_vww
-just measure axon_kws         # flash, then capture 12 s from a power cycle, and report
-python3 bench/plot.py         # the three figures, from bench/results/
+just measure axon mlperf_kws 12    # build, flash, capture 12 s from a power cycle, report
+just measure tflm mlperf_kws 25
+just measure-all                   # the eight captures, then the three figures
 ```
 
-`just measure axon_kws` ends with the report:
+`just measure axon mlperf_kws 12` ends with the report:
 
 ```console
 captured 1200000 samples over 12.00 s (100012 Hz)

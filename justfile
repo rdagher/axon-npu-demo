@@ -73,6 +73,21 @@ measure backend="axon" model="mlperf_kws" seconds="12": (bench backend model "qu
     west ppk2 capture --vdd 3.3 --out "$out.csv" --seconds {{seconds}}
     west ppk2 --build-dir '{{root}}/build' attribute "$out.csv" | tee "$out.txt"
 
+# The eight captures of bench/README.md, then its figures
+measure-all:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    for model in mlperf_kws mlperf_ad mlperf_ic mlperf_vww; do
+        {{just_executable()}} measure axon $model 12
+        {{just_executable()}} measure tflm $model 25
+    done
+    python3 '{{root}}/bench/plot.py'
+
+# TFLite on the host against the outputs the Axon compiler expects (needs Docker, after `just compile`)
+check:
+    docker run --rm --user $(id -u):$(id -g) -e HOME=/tmp -v '{{root}}/model:{{cdir}}/ws' -w {{cdir}}/ws \
+        --entrypoint python3 nrf-axon-nn-compiler check_outputs.py mlperf_kws mlperf_ad mlperf_ic mlperf_vww
+
 # Serial number of the kit to use: DK_SERIAL, or the only J-Link kit attached
 _kit:
     #!/usr/bin/env bash

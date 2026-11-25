@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 
-#include <string.h>
+#include <stdlib.h>
 
 #include <zephyr/kernel.h>
 #include <zephyr/sys/printk.h>
@@ -44,11 +44,15 @@ int main(void)
 			}
 			uint32_t us = k_cyc_to_us_floor32(k_cycle_get_32() - t0);
 
-			printk("vector %zu: %s  %u us  out[0..3] %d %d %d %d\n", i,
-			       err ? "FAILED" : memcmp(out, EXPECTED[i], OUTPUT_LEN) ? "differs" : "bit exact",
-			       us, out[0], out[1], out[2], out[3]);
-			if (err) {
-				return -1; /* no more markers: a failed inference is not measured */
+			int diff = 0;
+
+			for (size_t j = 0; j < OUTPUT_LEN; j++) {
+				diff = MAX(diff, abs(out[j] - ((const int8_t *)EXPECTED[i])[j]));
+			}
+			printk("vector %zu: %s  %u us  largest difference %d\n", i,
+			       err ? "FAILED" : diff ? "differs" : "bit exact", us, diff);
+			if (err || diff > CONFIG_BENCH_TOLERANCE) {
+				return -1; /* no more markers: a wrong inference is not measured */
 			}
 			k_sleep(K_MSEC(CONFIG_BENCH_GAP_MS));
 		}

@@ -7,6 +7,10 @@ config BENCH_TFLM_ARENA_SIZE
 	int "TFLM tensor arena, bytes"
 	default 131072
 
+config BENCH_TOLERANCE
+	int "Largest accepted difference with the expected output, per int8 value"
+	default 2
+
 config BENCH_GAP_MS
 	int "Sleep between two inferences, ms"
 	default 50
