@@ -1,0 +1,8 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+
+/* P1.12 is free on the DK; wire it to the PPK2's D0. */
+/ {
+	zephyr,user {
+		ppk2-d0-gpios = <&gpio1 12 GPIO_ACTIVE_HIGH>;
+	};
+};
