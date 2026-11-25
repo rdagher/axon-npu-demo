@@ -60,6 +60,36 @@ def bars(index, unit, what, out):
     fig.savefig(HERE / out, dpi=150)
 
 
+def overview(out):
+    """Duration and mean current of one inference: one column per model, bars only."""
+    fig, axes = plt.subplots(2, len(MODELS), figsize=(10, 5.2), facecolor=SURFACE)
+    for col, (model, title) in enumerate(MODELS.items()):
+        widths, charges = zip(*(report(backend, model) for backend in BACKENDS))
+        rows = ((widths, "ms", f"{title}\n{widths[1] / widths[0]:.1f} times shorter on Axon"),
+                ([q / w for q, w in zip(charges, widths)], "mA", ""))
+        for ax, (values, unit, label) in zip(axes[:, col], rows):
+            drawn = ax.bar(range(2), values, width=0.58, color=[c for _, c in BACKENDS.values()])
+            for bar, value in zip(drawn, values):
+                ax.text(bar.get_x() + bar.get_width() / 2, value,
+                        f"{value:,.0f}" if value >= 100 else f"{value:.3g}",
+                        ha="center", va="bottom", fontsize=9, color=INK)
+            ax.set_title(label, fontsize=9.5, color=INK, loc="left")
+            ax.set_ylim(0, 4.2 if unit == "mA" else max(values) * 1.15)
+            ax.set_xlim(-0.8, 1.8)
+            ax.set_xticks([])
+            ax.locator_params(axis="y", nbins=5)
+            style(ax)
+    axes[0, 0].set_ylabel("Duration (ms)", fontsize=9, color=MUTED)
+    axes[1, 0].set_ylabel("Mean current (mA)", fontsize=9, color=MUTED)
+    fig.legend(handles=[plt.Rectangle((0, 0), 1, 1, color=c) for _, c in BACKENDS.values()],
+               labels=[n for n, _ in BACKENDS.values()], loc="lower center", ncol=2, frameon=False,
+               fontsize=9.5, labelcolor=INK)
+    fig.suptitle("One inference on the nRF54LM20B: duration, and mean current over that duration",
+                 fontsize=11.5, color=INK, x=0.02, ha="left")
+    fig.tight_layout(rect=(0, 0.05, 1, 0.96))
+    fig.savefig(HERE / out, dpi=150)
+
+
 def capture(backend, model):
     """Current in µA, and the D0 region whose charge is the closest to the median."""
     rows = np.loadtxt(HERE / f"{backend}_{model}.csv", delimiter=",", skiprows=1, usecols=(1, 3))
@@ -106,6 +136,7 @@ def traces(out):
     fig.savefig(HERE / out, dpi=150)
 
 
+overview("overview.png")
 bars(0, "ms", "Time", "latency.png")
 bars(1, "µC", "Charge", "charge.png")
 traces("traces.png")

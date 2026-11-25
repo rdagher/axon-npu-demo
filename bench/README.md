@@ -159,7 +159,7 @@ To build, measure and draw, run the following commands. The models are `mlperf_k
 just compile                  # the four models, into model/outputs/
 just measure axon mlperf_kws 12    # build, flash, capture 12 s from a power cycle, report
 just measure tflm mlperf_kws 25
-just measure-all                   # the eight captures, then the three figures
+just measure-all                   # the eight captures, then the figures
 ```
 
 `just measure axon mlperf_kws 12` ends with the report:
