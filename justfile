@@ -8,6 +8,10 @@ ws     := env_var_or_default("AXON_WS", here)
 launch := "nrfutil sdk-manager toolchain launch --ncs-version " + ncs
 tc     := launch + " --chdir '" + ws + "' --"
 serial := env_var_or_default("DK_SERIAL", "")
+# Supply voltage of the kit, for the PPK2's calibration: VDD=3.0 just measure ...
+vdd    := env_var_or_default("VDD", "3.3")
+# Sleep between two inferences in ms, 0 for back to back: BENCH_GAP_MS=0 just measure ...
+gap    := env_var_or_default("BENCH_GAP_MS", "50")
 # MLPerf Tiny reference models, pinned by commit: name, file under benchmark/training/, SHA-256
 mlperf := "https://raw.githubusercontent.com/mlcommons/tiny/4addd0fa08d216e20637637874e084895f289da4/benchmark/training"
 models := """
@@ -57,6 +61,7 @@ bench backend="axon" model="mlperf_kws" mode="quiet":
     {{ if mode =~ '^(quiet|verify)$' { "" } else { error("mode: quiet or verify") } }}
     {{tc}} west build -p -b {{board}} '{{root}}/bench' --build-dir '{{root}}/build' -- -DAXON_MODEL={{model}} \
         -DAXON_MODEL_DIR='{{root}}/model/outputs' -DTFLITE='{{root}}/model/{{model}}.tflite' \
+        -DCONFIG_BENCH_GAP_MS={{gap}} \
         -DEXTRA_CONF_FILE='{{backend}}.conf{{ if mode == "quiet" { ";quiet.conf" } else { "" } }}' \
         {{ if backend == "axon" { "-DEXTRA_DTC_OVERLAY_FILE=axon.overlay" } else { "" } }}
 
@@ -67,10 +72,10 @@ measure backend="axon" model="mlperf_kws" seconds="12": (bench backend model "qu
     kit=$({{just_executable()}} _kit)
     out='{{root}}/bench/results/{{backend}}_{{trim_start_match(model, "mlperf_")}}'
     cd '{{ws}}'
-    west ppk2 run --vdd 3.3 -- nrfutil device program --serial-number "$kit" \
+    west ppk2 run --vdd {{vdd}} -- nrfutil device program --serial-number "$kit" \
         --firmware '{{root}}/build/bench/zephyr/zephyr.hex'
     # A separate capture: after a flash the chip stays in debug mode until it is power-cycled.
-    west ppk2 capture --vdd 3.3 --out "$out.csv" --seconds {{seconds}}
+    west ppk2 capture --vdd {{vdd}} --out "$out.csv" --seconds {{seconds}}
     west ppk2 --build-dir '{{root}}/build' attribute "$out.csv" | tee "$out.txt"
 
 # The eight captures of bench/README.md, then its figures

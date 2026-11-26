@@ -12,7 +12,7 @@ config BENCH_TOLERANCE
 	default 2
 
 config BENCH_GAP_MS
-	int "Sleep between two inferences, ms"
+	int "Sleep between two inferences, ms; 0 keeps the CPU awake for 100 µs instead"
 	default 50
 
 source "Kconfig.zephyr"
