@@ -173,7 +173,7 @@ channel last, so `src/tflm.cc` reorders the bytes of the two image models.
 
 ## Limitations
 
-Tested with nRF Connect SDK v3.4.1, add-on v3.0.0, TFLM at `fcc760a`, zephyr-ppk2 at `a5fbce7` and
+Tested with nRF Connect SDK v3.4.1, add-on v3.0.0, TFLM at `fcc760a`, zephyr-ppk2 at `a5fbce7` for the captures and `c6c545a` since, which changes its host commands only, and
 ppk2-lib 0.1.0, from macOS 26.5.
 
 - Measured on one dev kit with one PPK2, in one capture per configuration: 12 s for Axon, 25 s for TFLM.
@@ -190,10 +190,12 @@ ppk2-lib 0.1.0, from macOS 26.5.
 ## Reproduction
 
 Docker and a PPK2 are required, with the [requirements](../README.md#requirements) of the main
-README. On the host, install these in the environment `west` runs from:
+README. On the host, in the environment `west` runs from, install west and then the packages
+that zephyr-ppk2 lists, from the workspace:
 
 ```sh
-pip install west ppk2-lib pyelftools matplotlib
+pip install west
+west packages -m zephyr-ppk2 pip --install
 ```
 
 Wire the bench as follows. See zephyr-ppk2's
